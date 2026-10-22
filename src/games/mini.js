@@ -21,6 +21,7 @@ export default {
     const saved = ctx.load();
     const fill = saved?.fill || new Array(n * n).fill('');
     const wrong = new Set(saved?.wrong || []);
+    const hinted = new Set(saved?.hinted || []);
     let done = !!saved?.done;
     let dir = 'across';
     let pos = saved?.pos ?? [...Array(n * n).keys()].find((c) => !blocks.has(c));
@@ -121,6 +122,7 @@ export default {
         el.classList.toggle('word', inWord.has(c));
         el.classList.toggle('cur', c === pos);
         el.classList.toggle('wrong', wrong.has(c));
+        el.classList.toggle('hinted', hinted.has(c));
         el.querySelector('.mini-letter').textContent = fill[c].toUpperCase();
       });
       put(bar, h('span', { class: 'clue-tag' }, `${ac.num} ${ac.dir === 'across' ? 'Across' : 'Down'}`), h('span', {}, ac.clue));
@@ -137,12 +139,21 @@ export default {
         ctx.solved();
       } else if (!done && fill.every((v, c) => blocks.has(c) || v)) status.textContent = 'The grid is full but something is off. Try Check.';
       else if (!done) status.textContent = '';
-      ctx.save({ fill, wrong: [...wrong], done, pos });
+      ctx.save({ fill, wrong: [...wrong], hinted: [...hinted], done, pos });
     }
     render();
     if (done) grid.classList.add('solved');
     return {
       onKey,
+      hint() {
+        if (done) return false;
+        const ac = activeClue();
+        let c = fill[pos] !== solution[pos] ? pos : ac.cells.find((x) => fill[x] !== solution[x]);
+        if (c === undefined) c = [...Array(n * n).keys()].find((x) => !blocks.has(x) && fill[x] !== solution[x]);
+        fill[c] = solution[c]; wrong.delete(c); hinted.add(c); pos = c;
+        render();
+        return `Filled in ${solution[c].toUpperCase()}`;
+      },
       reveal() { for (let c = 0; c < n * n; c++) fill[c] = blocks.has(c) ? '' : solution[c]; wrong.clear(); done = true; grid.classList.add('solved'); render(); status.textContent = 'Solution shown.'; ctx.save({ fill, done, revealed: true }); },
     };
   },

@@ -117,6 +117,17 @@ export default {
     render();
     if (done) board.classList.add('solved');
     return {
+      hint() {
+        if (done) return false;
+        const sol = new Set(p.solution.map((c, r) => r * n + c));
+        commit();
+        const wrong = mark.findIndex((m, i) => m === 2 && !sol.has(i));
+        if (wrong !== -1) { mark[wrong] = 0; render(); return 'Removed a crown that doesn\'t belong there'; }
+        const missing = [...sol].filter((c) => mark[c] !== 2);
+        mark[missing[Math.floor(Math.random() * missing.length)]] = 2;
+        render();
+        return 'Placed one crown';
+      },
       reveal() {
         mark.fill(0);
         p.solution.forEach((c, r) => (mark[r * n + c] = 2));

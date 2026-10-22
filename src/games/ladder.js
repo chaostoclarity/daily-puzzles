@@ -130,8 +130,42 @@ export default {
 
     render();
     if (done) list.classList.add('solved');
+    function hint() {
+      if (done) return false;
+      const target = (k) => (k === 'top' || k === 'bottom' ? endWord(k).word : mids[+k.slice(1)].word);
+      const unsolvedMid = order.map((i) => 'm' + i).filter((k) => (entry[k] || '') !== target(k));
+      // all rungs solved but out of order: move one rung into its place
+      if (!unsolvedMid.length && !ordered()) {
+        for (let j = 0; j < order.length; j++) {
+          if (mids[order[j]].order !== j) {
+            const from = order.findIndex((i) => mids[i].order === j);
+            const [x] = order.splice(from, 1);
+            order.splice(j, 0, x);
+            break;
+          }
+        }
+        render();
+        return 'Moved one rung into place';
+      }
+      let key = active;
+      const locked = (k) => (k === 'top' || k === 'bottom') && !unlocked();
+      if (locked(key) || (entry[key] || '') === target(key)) {
+        key = unsolvedMid[0] || ['top', 'bottom'].find((k) => (entry[k] || '') !== target(k));
+      }
+      const t = target(key);
+      const v = entry[key] || '';
+      let pos = 0;
+      while (pos < v.length && v[pos] === t[pos]) pos++;
+      entry[key] = t.slice(0, pos + 1);
+      active = key;
+      if (entry[key] === t) { render(); active = nextOpen(); }
+      render();
+      return `Filled letter ${pos + 1}`;
+    }
+
     return {
       onKey,
+      hint,
       reveal() {
         order = mids.map((_, i) => i).sort((a, b) => mids[a].order - mids[b].order);
         mids.forEach((m, i) => (entry['m' + i] = m.word));

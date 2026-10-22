@@ -19,11 +19,12 @@ export default {
     const picks = saved?.picks || [];
     let idx = saved?.idx ?? 0;
     let done = !!saved?.done;
+    const cut = saved?.cut || {}; // question index -> wrong answers removed by hints
     const body = h('div', { class: 'trivia' });
     root.append(body);
 
     function render() {
-      ctx.save({ picks, idx, done });
+      ctx.save({ picks, idx, done, cut });
       const right = picks.filter((pk, i) => pk === questions[i].answer).length;
       if (done) {
         put(body, 
@@ -42,8 +43,8 @@ export default {
         h('div', { class: 'trivia-progress', 'aria-hidden': 'true' }, questions.map((qq, i) => h('i', { class: i < picks.length ? (picks[i] === qq.answer ? 'ok' : 'no') : i === idx ? 'cur' : '' }))),
         h('h2', { class: 'trivia-q' }, q.q),
         h('div', { class: 'trivia-choices' }, q.choices.map((c) => h('button', {
-          class: 'choice' + (picked !== undefined ? (c === q.answer ? ' right' : c === picked ? ' wrong' : ' dim') : ''),
-          type: 'button', disabled: picked !== undefined,
+          class: 'choice' + (picked !== undefined ? (c === q.answer ? ' right' : c === picked ? ' wrong' : ' dim') : (cut[idx] || []).includes(c) ? ' cut' : ''),
+          type: 'button', disabled: picked !== undefined || (cut[idx] || []).includes(c),
           onClick: () => { picks[idx] = c; render(); },
         }, c))),
         picked !== undefined ? h('button', {
@@ -58,6 +59,16 @@ export default {
     }
     render();
     return {
+      hint() {
+        if (done || picks[idx] !== undefined) return false;
+        const q = questions[idx];
+        const gone = cut[idx] || [];
+        const left = q.choices.filter((c) => c !== q.answer && !gone.includes(c));
+        if (left.length <= 1) { ctx.toast('Down to two answers. Your call.'); return false; }
+        cut[idx] = [...gone, left[Math.floor(Math.random() * left.length)]];
+        render();
+        return 'Removed one wrong answer';
+      },
       onKey(k) {
         if (done) return;
         const q = questions[idx];

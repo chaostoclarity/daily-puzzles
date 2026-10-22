@@ -132,7 +132,7 @@ h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
 .seg-btn.on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
 .toolbar-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .puzzle-label { font-size: 0.9rem; color: var(--muted); display: inline-flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
-.toolbar-btns { display: inline-flex; align-items: center; gap: 12px; }
+.toolbar-btns { display: inline-flex; align-items: center; gap: 10px; margin-left: auto; }
 .link { border: 0; background: none; padding: 0; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-size: 0.9rem; }
 .btn {
   border: 1px solid var(--line); background: var(--surface); color: var(--ink);
@@ -388,3 +388,15 @@ body::before { content: ''; position: fixed; inset: 0 0 auto; height: env(safe-a
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---------- hints ---------- */
+.hint-btn { border-color: var(--mark); }
+.guess-hints { display: grid; grid-template-columns: repeat(var(--len), 1fr); gap: 6px; margin-bottom: 8px; }
+.guess-hints span { height: 30px; border-radius: 6px; display: grid; place-items: center; font-family: var(--f-display); font-weight: 700; color: var(--muted); border: 1.5px dashed var(--line); }
+.guess-hints span.on { border: 0; background: color-mix(in srgb, var(--mark) 45%, var(--surface)); color: var(--ink); }
+.mini-cell.hinted::before { content: ''; position: absolute; top: 0; right: 0; border-style: solid; border-width: 0 12px 12px 0; border-color: transparent var(--mark) transparent transparent; }
+.hive-hintword { display: flex; justify-content: center; align-items: baseline; gap: 10px; }
+.hive-hintword span { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: var(--g); }
+.hive-hintword b { font-family: var(--f-display); font-size: 1.2rem; letter-spacing: 0.08em; }
+.choice.cut { opacity: 0.35; text-decoration: line-through; }
+.weave-cell.hinted { box-shadow: 0 0 0 3px var(--mark); }

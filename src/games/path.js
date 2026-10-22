@@ -114,6 +114,17 @@ export default {
         commit();
         if (c === path[path.length - 2]) { path.pop(); render(); } else tryExtend(c);
       },
+      hint() {
+        if (done) return false;
+        const sol = p.solution;
+        let k = 0;
+        while (k < path.length && path[k] === sol[k]) k++;
+        commit();
+        const fixed = k < path.length;
+        path = sol.slice(0, k + 1);
+        render();
+        return fixed ? 'Trimmed your line back to the right track and added one square' : 'Added one square';
+      },
       reveal() { path = p.solution.slice(); done = true; board.classList.add('solved'); render(); status.textContent = 'Solution shown.'; ctx.save({ path, done, revealed: true }); },
     };
   },

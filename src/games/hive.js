@@ -22,6 +22,7 @@ export default {
     let cur = '';
     let done = !!saved?.done;
     let revealed = !!saved?.revealed;
+    let hintWord = saved?.hintWord || null; // { w, n } a word being revealed letter by letter
     const answerSet = new Set(p.words);
     const geniusAt = Math.ceil(0.7 * p.max);
 
@@ -30,7 +31,8 @@ export default {
     const meter = h('div', { class: 'hive-meter' });
     const list = h('div', { class: 'hive-found' });
     const hints = h('details', { class: 'hive-hints' });
-    root.append(meter, input, hex,
+    const hintChip = h('div', { class: 'hive-hintword', 'aria-live': 'polite' });
+    root.append(meter, hintChip, input, hex,
       h('div', { class: 'row-actions' },
         h('button', { class: 'btn', type: 'button', onClick: () => onKey('back') }, 'Delete'),
         h('button', { class: 'btn', type: 'button', 'aria-label': 'Shuffle letters', onClick: () => { outer = shuffle(outer); drawHex(); } }, 'Shuffle'),
@@ -104,12 +106,35 @@ export default {
         h('p', {}, `${left.length} words left, ${pangramsLeft} pangram${pangramsLeft === 1 ? '' : 's'} left.`),
         h('div', { class: 'hive-two' }, Object.keys(byTwo).sort().map((k) => h('span', {}, h('b', {}, k.toUpperCase()), ` ${byTwo[k]}`))));
       renderInput();
-      ctx.save({ found, done, revealed });
+      if (hintWord && found.includes(hintWord.w)) hintWord = null;
+      hintChip.hidden = !hintWord;
+      if (hintWord) put(hintChip, h('span', {}, 'Hint'), h('b', {}, [...hintWord.w].map((ch, i) => (i < hintWord.n ? ch.toUpperCase() : '_')).join(' ')));
+      ctx.save({ found, done, revealed, hintWord });
     }
     drawHex();
     render();
     return {
       onKey,
+      hint() {
+        if (revealed) return false;
+        if (!hintWord) {
+          const left = p.words.filter((w) => !found.includes(w));
+          if (!left.length) return false;
+          // shortest words first: cheapest to finish
+          left.sort((a, b) => a.length - b.length || a.localeCompare(b));
+          hintWord = { w: left[0], n: 1 };
+        } else hintWord.n++;
+        if (hintWord.n >= hintWord.w.length) {
+          const w = hintWord.w;
+          hintWord = null;
+          found.push(w);
+          if (!done && score() >= geniusAt) { done = true; ctx.solved(); }
+          render();
+          return `Added ${w.toUpperCase()}`;
+        }
+        render();
+        return `Next letter of a ${hintWord.w.length}-letter word`;
+      },
       reveal() { revealed = true; render(); },
     };
   },

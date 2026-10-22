@@ -19,7 +19,8 @@ export default {
     const { rows, cols, grid: letters, words } = p;
     const saved = ctx.load();
     const found = new Set(saved?.found || []); // indices into words
-    const hinted = new Set(saved?.hinted || []);
+    // letters revealed per word index; older saves stored a list of word indexes
+    const hinted = Array.isArray(saved?.hinted) ? Object.fromEntries(saved.hinted.map((i) => [i, 1])) : { ...(saved?.hinted || {}) };
     let done = !!saved?.done;
     let sel = [];
     const owner = new Array(rows * cols).fill(-1);
@@ -41,7 +42,6 @@ export default {
     const status = h('p', { class: 'hint-line', 'aria-live': 'polite' });
     root.append(current, board,
       h('div', { class: 'row-actions' },
-        h('button', { class: 'btn', type: 'button', onClick: hint }, 'Hint'),
         h('button', { class: 'btn', type: 'button', onClick: () => { sel = []; render(); } }, 'Clear selection')),
       slots, status);
 
@@ -103,14 +103,25 @@ export default {
     gridEl.addEventListener('pointercancel', () => { drag = null; });
 
     function hint() {
-      if (done) return;
-      const left = slotOrder.filter((i) => !found.has(i) && !hinted.has(i));
-      if (!left.length) { ctx.toast('Every remaining word already has a hint'); return; }
-      hinted.add(left[0]);
+      if (done) return false;
+      const open = slotOrder.filter((i) => !found.has(i));
+      // keep building the word already started, otherwise start the shortest
+      const i = open.find((x) => (hinted[x] || 0) > 0) ?? open[0];
+      hinted[i] = (hinted[i] || 0) + 1;
+      if (hinted[i] >= words[i].word.length) {
+        found.add(i);
+        if (found.size === words.length) {
+          done = true; board.classList.add('solved'); status.textContent = 'Every letter placed.';
+          render(); ctx.solved(); return 'Last word revealed';
+        }
+        render();
+        return `Revealed ${words[i].word.toUpperCase()}`;
+      }
       render();
+      return `Letter ${hinted[i]} of a ${words[i].word.length}-letter word`;
     }
 
-    const state = () => ({ found: [...found], hinted: [...hinted], done });
+    const state = () => ({ found: [...found], hinted, done });
 
     function render() {
       const selSet = new Set(sel);
@@ -118,7 +129,7 @@ export default {
         if (!letters[c]) return;
         const o = owner[c];
         const isFound = found.has(o);
-        el.className = 'weave-cell' + (isFound ? ` found w${slotOrder.indexOf(o) % 8}` : '') + (selSet.has(c) ? ' sel' : '') + (hinted.has(o) && !isFound && words[o].cells[0] === c ? ' hinted' : '');
+        el.className = 'weave-cell' + (isFound ? ` found w${slotOrder.indexOf(o) % 8}` : '') + (selSet.has(c) ? ' sel' : '') + (o !== -1 && !isFound && words[o].cells.indexOf(c) < (hinted[o] || 0) ? ' hinted' : '');
       });
       put(svg, );
       const pt = (c) => `${(c % cols) + 0.5},${Math.floor(c / cols) + 0.5}`;
@@ -129,7 +140,7 @@ export default {
         const w = words[i];
         const f = found.has(i);
         return h('div', { class: 'weave-slot' + (f ? ` found w${slotOrder.indexOf(i) % 8}` : ''), 'aria-label': f ? w.word : `${w.word.length} letters` },
-          [...w.word].map((ch, k) => h('span', {}, f || (k === 0 && hinted.has(i)) ? ch.toUpperCase() : '')));
+          [...w.word].map((ch, k) => h('span', {}, f || k < (hinted[i] || 0) ? ch.toUpperCase() : '')));
       }));
       if (!done) status.textContent = `${found.size} of ${words.length} words found`;
       ctx.save(state());
@@ -137,6 +148,7 @@ export default {
     render();
     if (done) board.classList.add('solved');
     return {
+      hint,
       reveal() { words.forEach((_, i) => found.add(i)); done = true; sel = []; board.classList.add('solved'); render(); status.textContent = 'Solution shown.'; ctx.save({ ...state(), revealed: true }); },
     };
   },

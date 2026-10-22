@@ -31,8 +31,10 @@ export default {
       rowsEl.push(row); gridEl.append(row);
     }
     const result = h('div', { class: 'result-box', hidden: true });
+    const revealedPos = saved?.revealedPos || []; // positions given away by hints
+    const hintRow = h('div', { class: 'guess-hints', style: { '--len': len }, 'aria-label': 'Hint letters' });
     const kb = keyboard(onKey);
-    root.append(h('div', { class: 'board guess-board', style: { '--len': len } }, gridEl), result, kb.el);
+    root.append(h('div', { class: 'board guess-board', style: { '--len': len } }, hintRow, gridEl), result, kb.el);
 
     function render(revealRow = -1) {
       for (let r = 0; r < tries; r++) {
@@ -57,7 +59,10 @@ export default {
         if (states[ch] === 'hit') return;
         if (m === 'hit' || (m === 'near' && states[ch] !== 'hit') || !states[ch]) states[ch] = m;
       });
+      for (const i of revealedPos) states[answer[i]] = 'hit';
       kb.setStates(states);
+      hintRow.hidden = !revealedPos.length;
+      put(hintRow, Array.from({ length: len }, (_, i) => h('span', { class: revealedPos.includes(i) ? 'on' : '' }, revealedPos.includes(i) ? answer[i].toUpperCase() : '')));
       if (over) {
         result.hidden = false;
         const def = clueFor(answer);
@@ -66,7 +71,7 @@ export default {
           def ? h('p', { class: 'result-def' }, def) : null,
           h('p', { class: 'result-note' }, over === 'won' ? `Solved in ${history.length} of ${tries}.` : 'Out of guesses. That was the word.'));
       } else result.hidden = true;
-      ctx.save({ history, over });
+      ctx.save({ history, over, revealedPos });
     }
 
     function onKey(k) {
@@ -94,6 +99,16 @@ export default {
     render();
     return {
       onKey,
+      hint() {
+        if (over) return false;
+        const known = new Set(revealedPos);
+        for (const g of history) g.marks.forEach((m, i) => { if (m === 2) known.add(i); });
+        const i = [...Array(len).keys()].find((x) => !known.has(x));
+        if (i === undefined) { ctx.toast('You already have every letter in place'); return false; }
+        revealedPos.push(i);
+        render();
+        return `Letter ${i + 1} is ${answer[i].toUpperCase()}`;
+      },
       reveal() { if (!over) { over = 'lost'; render(); ctx.save({ history, over, revealed: true }); } },
     };
   },

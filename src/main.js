@@ -60,6 +60,7 @@ function rulesSheet(g) {
   sheet((close) => [
     h('div', { class: 'sheet-head' }, h('span', { class: 'sheet-icon', style: { '--g': `var(--g-${g.id})` }, html: ICONS[g.id] }), h('h2', {}, `How to play ${g.name}`)),
     h('ul', { class: 'rules' }, g.rules.map((r) => h('li', {}, r))),
+    h('p', {}, 'Stuck? Hint solves one square or letter at a time.'),
     h('button', { class: 'btn primary wide', type: 'button', onClick: close }, 'Got it'),
   ]);
 }
@@ -128,6 +129,8 @@ function renderGame(g) {
     onClick: () => { if (id !== d) { store.set(`dp:diff:${g.id}`, id); renderGame(g); } },
   }, label)));
   const label = n === 0 ? "Today's puzzle" : `Extra puzzle ${n}`;
+  const hintKey = `dp:h:${key}`;
+  const hintBtn = h('button', { class: 'btn small hint-btn', type: 'button', 'aria-label': 'Hint: solve one square or letter', onClick: (e) => { e.currentTarget.blur(); useHint(); } }, 'Hint');
   const body = h('div', { class: `game game-${g.id}` });
   const screen = h('main', { class: 'screen', style: { '--g': `var(--g-${g.id})` } },
     h('header', { class: 'topbar' },
@@ -142,6 +145,7 @@ function renderGame(g) {
           n > 0 ? h('button', { class: 'link', type: 'button', onClick: () => { store.set(extraKey(g, d), 0); renderGame(g); } }, 'Back to today') : null),
         h('span', { class: 'toolbar-btns' },
           h('button', { class: 'link', type: 'button', onClick: confirmReveal }, 'Show answer'),
+          hintBtn,
           h('button', { class: 'btn small', type: 'button', onClick: newPuzzle }, 'New puzzle')))),
     body);
   put(app, screen);
@@ -151,6 +155,16 @@ function renderGame(g) {
     store.set(extraKey(g, d), n + 1);
     renderGame(g);
     toast('New puzzle');
+  }
+
+  function useHint() {
+    if (finished) { toast('This puzzle is already finished'); return; }
+    if (!api.hint) return;
+    const msg = api.hint();
+    if (msg === false) return;
+    const used = store.get(hintKey, 0) + 1;
+    store.set(hintKey, used);
+    toast(msg || `Hint ${used}`);
   }
 
   function stop() { finished = true; store.set(timeKey, secs); timerEl.classList.add('stopped'); }
@@ -179,7 +193,7 @@ function renderGame(g) {
       setTimeout(() => active === mine && sheet((close) => [
         h('div', { class: 'sheet-head' }, h('span', { class: 'sheet-icon', style: { '--g': `var(--g-${g.id})` }, html: ICONS[g.id] }), h('h2', {}, summary ? `${g.name}: ${summary}` : `${g.name} solved`)),
         h('p', { class: 'big-time' }, fmtTime(secs)),
-        h('p', {}, `${DIFFS.find((x) => x[0] === d)[1]} · ${label}`),
+        h('p', {}, `${DIFFS.find((x) => x[0] === d)[1]} · ${label}` + (store.get(hintKey, 0) ? ` · ${store.get(hintKey, 0)} hint${store.get(hintKey, 0) > 1 ? 's' : ''}` : '')),
         h('div', { class: 'sheet-actions' },
           h('button', { class: 'btn', type: 'button', onClick: () => { close(); location.hash = ''; } }, 'All games'),
           h('button', { class: 'btn primary', type: 'button', onClick: () => { close(); newPuzzle(); } }, 'New puzzle')),
