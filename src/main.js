@@ -47,12 +47,12 @@ function toast(msg) {
 function sheet(content, { onClose } = {}) {
   const close = () => { wrap.remove(); document.removeEventListener('keydown', esc); onClose?.(); };
   const esc = (e) => { if (e.key === 'Escape') close(); };
-  const panel = h('div', { class: 'sheet', role: 'dialog', 'aria-modal': 'true' }, content(close));
+  const panel = h('div', { class: 'sheet', role: 'dialog', 'aria-modal': 'true', tabindex: '-1' }, content(close));
   const wrap = h('div', { class: 'sheet-wrap', onClick: (e) => { if (e.target === wrap) close(); } }, panel);
   document.body.append(wrap);
   document.addEventListener('keydown', esc);
-  const f = panel.querySelector('button');
-  if (f) f.focus({ preventScroll: true });
+  // focus the dialog itself so a key held from typing can't press a button by accident
+  panel.focus({ preventScroll: true });
   return close;
 }
 
