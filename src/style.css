@@ -194,6 +194,7 @@ h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
   display: grid; place-items: center; font-family: var(--f-display); font-weight: 700; font-size: clamp(1.1rem, 5.5vw, 1.7rem);
   background: var(--surface); border: 1.5px solid var(--line); cursor: pointer; transition: background 0.12s;
 }
+.weave-cell.block { background: var(--soft); border-color: transparent; border-radius: 6px; margin: 6%; cursor: default; }
 .weave-cell.sel { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 .weave-cell.found { border-color: transparent; }
 .weave-cell.hinted { box-shadow: 0 0 0 3px var(--mark); }
@@ -226,12 +227,12 @@ h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
   padding: 10px 14px; line-height: 1.4;
 }
 .clue-tag { display: inline-block; margin-right: 8px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: var(--g); }
-.ladder { display: grid; gap: 8px; width: min(100%, 420px); margin: 0 auto; }
+.ladder { display: grid; gap: 4px; width: min(100%, 420px); margin: 0 auto; }
 .rung { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 6px; border-radius: 10px; border: 2px solid transparent; cursor: pointer; }
 .rung.active { border-color: var(--g); background: color-mix(in srgb, var(--g) 8%, transparent); }
 .rung-letters { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
 .rung-letters:has(> :nth-child(4):last-child) { grid-template-columns: repeat(4, 1fr); }
-.rung .tile { font-size: clamp(1.05rem, 5vw, 1.5rem); }
+.rung .tile { aspect-ratio: auto; height: clamp(40px, 11vw, 52px); font-size: clamp(1.05rem, 5vw, 1.5rem); }
 .rung.solved .tile { background: var(--g); border-color: var(--g); color: var(--on-color); }
 .rung.locked { cursor: default; }
 .rung.locked .tile { background: var(--soft); border-style: dashed; }
@@ -241,10 +242,15 @@ h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
 .rung:not(:has(.rung-move)) { grid-template-columns: 1fr; }
 
 /* ---------- keyboard ---------- */
-.kb { display: grid; gap: 6px; user-select: none; width: min(100%, 500px); margin: 0 auto; }
+.kb {
+  display: grid; gap: 6px; user-select: none; width: min(100%, 500px); margin: 0 auto;
+  position: sticky; bottom: 0; z-index: 4; background: var(--paper);
+  padding-block: 8px max(8px, env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -10px 14px -8px var(--paper);
+}
 .kb-row { display: flex; gap: 5px; justify-content: center; }
 .kb-key {
-  flex: 1 1 0; max-width: 44px; height: 52px; border: 0; border-radius: 6px; background: var(--soft); color: var(--ink);
+  flex: 1 1 0; max-width: 44px; height: 50px; border: 0; border-radius: 6px; background: var(--soft); color: var(--ink);
   font-weight: 700; text-transform: uppercase; cursor: pointer; padding: 0; font-size: 1rem; touch-action: manipulation;
 }
 .kb-key.kb-wide { flex: 1.6 1 0; max-width: 72px; font-size: 0.78rem; text-transform: none; }

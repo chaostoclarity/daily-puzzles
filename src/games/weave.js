@@ -9,7 +9,7 @@ export default {
   inspired: 'Wend',
   generate: generateWeave,
   rules: [
-    'The grid hides several words. Every letter belongs to exactly one of them.',
+    'The grid hides several words, each a different length. Every letter belongs to exactly one of them. Dark squares are blocked.',
     'Spell a word by dragging through letters that sit side by side: up, down, left or right.',
     'You can also tap letters one at a time, then tap the last letter again to submit.',
     'The slots show how many letters each word has. Find them all to clear the board.',
@@ -29,7 +29,9 @@ export default {
     const cells = [];
     const gridEl = h('div', { class: 'weave-grid', style: { '--c': cols, '--r': rows }, role: 'grid', 'aria-label': 'Letter grid' });
     letters.forEach((ch, c) => {
-      const el = h('div', { class: 'weave-cell', 'data-cell': c, role: 'gridcell' }, ch.toUpperCase());
+      const el = ch
+        ? h('div', { class: 'weave-cell', 'data-cell': c, role: 'gridcell' }, ch.toUpperCase())
+        : h('div', { class: 'weave-cell block', 'aria-hidden': 'true' });
       cells.push(el); gridEl.append(el);
     });
     const svg = s('svg', { class: 'weave-svg', viewBox: `0 0 ${cols} ${rows}`, 'aria-hidden': 'true' });
@@ -44,7 +46,7 @@ export default {
       slots, status);
 
     const adj = (a, b) => weaveNeighbors(rows, cols, a).includes(b);
-    const usable = (c) => owner[c] === -1 || !found.has(owner[c]);
+    const usable = (c) => c !== null && !!letters[c] && !found.has(owner[c]);
 
     function extend(c) {
       if (c === null || !usable(c)) return false;
@@ -113,6 +115,7 @@ export default {
     function render() {
       const selSet = new Set(sel);
       cells.forEach((el, c) => {
+        if (!letters[c]) return;
         const o = owner[c];
         const isFound = found.has(o);
         el.className = 'weave-cell' + (isFound ? ` found w${slotOrder.indexOf(o) % 8}` : '') + (selSet.has(c) ? ' sel' : '') + (hinted.has(o) && !isFound && words[o].cells[0] === c ? ' hinted' : '');

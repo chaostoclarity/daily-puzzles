@@ -28,17 +28,7 @@ export function s(tag, attrs = {}) {
   return el;
 }
 
-export const store = {
-  get(key, fallback = null) {
-    try {
-      const v = localStorage.getItem(key);
-      return v === null ? fallback : JSON.parse(v);
-    } catch { return fallback; }
-  },
-  set(key, value) {
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage unavailable */ }
-  },
-};
+export { store } from './store.js';
 
 /** On-screen keyboard. onKey receives a lowercase letter, 'enter' or 'back'. */
 export function keyboard(onKey, { enterLabel = 'Enter' } = {}) {

@@ -3,6 +3,7 @@ import wordsJson from './data/words.json';
 import cluesJson from './data/clues.json';
 import triviaJson from './data/trivia.json';
 import { initWords } from './lib/words.js';
+import { connectCloud, flush } from './lib/store.js';
 import { initTrivia } from './gen/trivia.js';
 import { makeRng } from './lib/rng.js';
 import { h, put, store, keyCode, fmtTime } from './lib/ui.js';
@@ -196,7 +197,7 @@ function renderGame(g) {
       if (finished || document.hidden) return;
       secs++;
       timerEl.textContent = fmtTime(secs);
-      if (secs % 5 === 0) store.set(timeKey, secs);
+      if (secs % 5 === 0) store.set(timeKey, secs, { lazy: true });
     }, 1000),
   };
   if (!store.get(`dp:seen:${g.id}`)) { store.set(`dp:seen:${g.id}`, true); rulesSheet(g); }
@@ -218,6 +219,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 function route() {
+  flush();
   document.querySelectorAll('.sheet-wrap').forEach((el) => el.remove());
   toastEl.classList.remove('show');
   const id = location.hash.replace(/^#\/?/, '');
@@ -227,3 +229,5 @@ function route() {
 window.addEventListener('hashchange', route);
 document.body.append(toastEl);
 route();
+// as a Claude artifact, progress also lives in the viewer's private cloud store
+connectCloud(today()).then((changed) => { if (changed && !document.querySelector('.sheet-wrap')) route(); });

@@ -54,8 +54,9 @@ console.log('crowns boards with more than one solution:', multi);
 run('weave', {
   gen: generateWeave,
   check: (p, d, s) => {
-    assert(p.grid.every(Boolean), `weave full ${s}`);
-    assert(p.words.reduce((a, w) => a + w.cells.length, 0) === p.rows * p.cols, `weave cover ${s}`);
+    assert(p.words.reduce((a, w) => a + w.cells.length, 0) === p.grid.filter(Boolean).length, `weave cover ${s}`);
+    assert(new Set(p.words.map((w) => w.word.length)).size === p.words.length, `weave distinct lengths ${s}`);
+    for (const w of p.words) assert(w.cells.map((c) => p.grid[c]).join('') === w.word, `weave spell ${s}`);
   },
 });
 run('ladder', {
