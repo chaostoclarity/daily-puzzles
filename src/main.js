@@ -5,6 +5,8 @@ import triviaJson from './data/trivia.json';
 import { initWords } from './lib/words.js';
 import { connectCloud, flush } from './lib/store.js';
 import { initTrivia } from './gen/trivia.js';
+import { initCompounds } from './gen/ladder.js';
+import compoundsJson from './data/compounds.json';
 import { makeRng } from './lib/rng.js';
 import { h, put, store, keyCode, fmtTime } from './lib/ui.js';
 import { ICONS } from './icons.js';
@@ -19,6 +21,7 @@ import trivia from './games/trivia.js';
 
 initWords(wordsJson, cluesJson);
 initTrivia(triviaJson);
+initCompounds(compoundsJson);
 
 const GAMES = [path, crowns, weave, ladder, guess, mini, hive, trivia];
 const DIFFS = [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']];
@@ -157,8 +160,11 @@ function renderGame(g) {
     toast('New puzzle');
   }
 
+  // Hive keeps going after it's solved, so its hints and answers stay available until revealed
+  const playable = () => !finished || (g.playsOn && !store.get(`dp:s:${key}`)?.revealed);
+
   function useHint() {
-    if (finished) { toast('This puzzle is already finished'); return; }
+    if (!playable()) { toast('This puzzle is already finished'); return; }
     if (!api.hint) return;
     const msg = api.hint();
     if (msg === false) return;
@@ -170,7 +176,7 @@ function renderGame(g) {
   function stop() { finished = true; store.set(timeKey, secs); timerEl.classList.add('stopped'); }
 
   function confirmReveal() {
-    if (finished) { toast('This puzzle is already finished'); return; }
+    if (!playable()) { toast('This puzzle is already finished'); return; }
     if (!api.reveal) return;
     sheet((close) => [
       h('h2', {}, 'Show the answer?'),

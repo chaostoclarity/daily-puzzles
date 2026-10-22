@@ -5,13 +5,14 @@ import { makeRng } from '../src/lib/rng.js';
 import { generatePath, checkPath } from '../src/gen/path.js';
 import { generateCrowns, solveCrowns, checkCrowns } from '../src/gen/crowns.js';
 import { generateWeave } from '../src/gen/weave.js';
-import { generateLadder, oneApart } from '../src/gen/ladder.js';
+import { generateLadder, oneApart, initCompounds } from '../src/gen/ladder.js';
 import { generateGuess, score } from '../src/gen/guess.js';
 import { generateHive } from '../src/gen/hive.js';
 import { generateMini } from '../src/gen/mini.js';
 import { generateTrivia, initTrivia } from '../src/gen/trivia.js';
 
 initWords(JSON.parse(fs.readFileSync('src/data/words.json')), JSON.parse(fs.readFileSync('src/data/clues.json')));
+initCompounds(JSON.parse(fs.readFileSync('src/data/compounds.json')));
 if (fs.existsSync('src/data/trivia.json')) initTrivia(JSON.parse(fs.readFileSync('src/data/trivia.json')));
 
 const SEEDS = +(process.env.SEEDS || 25);

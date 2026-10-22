@@ -6,12 +6,14 @@ Eight daily puzzle games in one web app. Every puzzle is generated in the browse
 |---|---|---|---|---|
 | Trail | Zip | 5x5, many numbers | 6x6, a few walls | 7x7, fewer numbers, more walls |
 | Crowns | Queens | 6x6 | 7x7 | 8x8, no conflict highlights |
-| Weave | Wend | 4x4, 3 to 5 letter words | 5x5, 4 to 6 letters | 6x6, 4 to 6 letters |
-| Ladder | Crossclimb | 4 letters, rungs in order | 4 letters, scrambled | 5 letters, scrambled, synonym clues |
+| Weave | Wend | 5x5, words of 3 to 6 letters | 6x6, 4 to 8 letters | 7x7, 4 to 9 letters |
+| Ladder | Crossclimb | 3 rungs in order | 5 rungs, scrambled | 6 rungs, scrambled, synonym clues |
 | Word Guess | Wordle | 4 letters | 5 letters | 5 letters, less common, hints must be reused |
 | Mini Crossword | The Mini | 4x4 | 5x5 | 5x5, rarer words, synonym clues |
 | Hive | Spelling Bee | common words only | everyday dictionary | big dictionary |
 | Trivia | daily trivia | easy questions | medium | hard |
+
+Ladder's top and bottom words join into a compound word (FIRE + WORK). Hive is solved when you find a pangram.
 
 Each game has Easy, Medium and Hard, a **New puzzle** button for an extra round, **Show answer**, and saves progress in the browser.
 

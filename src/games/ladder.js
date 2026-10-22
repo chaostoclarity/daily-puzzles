@@ -11,7 +11,7 @@ export default {
     'Each rung is a word that differs from the rung next to it by exactly one letter.',
     'Tap a rung to see its clue, then type the answer.',
     'When the rungs are out of order, use the arrows to move them until each step changes one letter.',
-    'Solve every middle rung in order to unlock the top and bottom words.',
+    'Solve every middle rung in order to unlock the top and bottom words. Together they make a compound word, like FIRE + WORK.',
   ],
   mount(root, ctx) {
     const p = ctx.puzzle;
@@ -63,13 +63,15 @@ export default {
 
     function clueText() {
       if (active === 'top' || active === 'bottom') {
-        return h('div', {}, h('span', { class: 'clue-tag' }, active === 'top' ? 'Top' : 'Bottom'), endWord(active).clue);
+        return h('div', {}, h('span', { class: 'clue-tag' }, 'Top + bottom'), `${p.compoundClue || endWord(active).clue} (two ${len}-letter words that join into one)`);
       }
       const i = +active.slice(1);
       return h('div', {}, h('span', { class: 'clue-tag' }, `${len} letters`), mids[i].clue);
     }
 
     function render() {
+      // once the rungs are solved, flip a ladder built upside down so the ends read top to bottom
+      if (allMidSolved() && ordered() && reversed()) order.reverse();
       const open = unlocked();
       const rows = [rowEl('top', endWord('top').word, { locked: !open, end: true })];
       order.forEach((idx, pos) => rows.push(rowEl('m' + idx, mids[idx].word, { move: p.scramble, pos, first: pos === 0, last: pos === order.length - 1 })));

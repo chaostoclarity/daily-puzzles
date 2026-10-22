@@ -7,12 +7,13 @@ export default {
   tagline: 'Make words from seven letters',
   inspired: 'Spelling Bee',
   generate: generateHive,
+  playsOn: true, // solved at the first pangram, but words, hints and answers keep going
   rules: [
     'Make words of four or more letters from the seven in the hive. Letters can repeat.',
     'Every word must use the center letter.',
     'Four-letter words score 1 point. Longer words score 1 point per letter.',
     'A word that uses all seven letters is a pangram and earns 7 bonus points.',
-    'Reach Genius to count the puzzle as solved. Harder levels accept a bigger dictionary.',
+    'Find a pangram to solve the puzzle. Keep going for more words and a higher rank if you like. Harder levels accept a bigger dictionary.',
   ],
   mount(root, ctx) {
     const p = ctx.puzzle;
@@ -76,7 +77,7 @@ export default {
       cur = '';
       const pts = hivePoints(w);
       ctx.toast(hiveIsPangram(w) ? `Pangram! +${pts}` : `+${pts}`);
-      if (!done && score() >= geniusAt) { done = true; ctx.solved(); }
+      if (!done && hiveIsPangram(w)) { done = true; ctx.solved(); }
       render();
     }
 
@@ -92,7 +93,7 @@ export default {
         h('div', { class: 'hive-track', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': p.max, 'aria-valuenow': sc, 'aria-label': 'Score' },
           RANKS.map(([name, f]) => h('i', { class: sc >= Math.ceil(f * p.max) ? 'on' : '', title: `${name}: ${Math.ceil(f * p.max)}`, style: { left: `${f * 100}%` } })),
           h('div', { class: 'hive-fill', style: { width: `${Math.min(100, (sc / p.max) * 100)}%` } })),
-        h('div', { class: 'hive-next' }, sc >= p.max ? 'Every word found.' : `Genius at ${geniusAt} · ${found.length} of ${p.words.length} words`));
+        h('div', { class: 'hive-next' }, sc >= p.max ? 'Every word found.' : `${found.some(hiveIsPangram) ? 'Solved' : 'Find a pangram to solve'} · ${found.length} of ${p.words.length} words`));
       const shown = revealed ? p.words : found.slice().sort();
       put(list, 
         h('h3', {}, revealed ? `All ${p.words.length} words` : `Found ${found.length}`),
@@ -120,15 +121,16 @@ export default {
         if (!hintWord) {
           const left = p.words.filter((w) => !found.includes(w));
           if (!left.length) return false;
-          // shortest words first: cheapest to finish
-          left.sort((a, b) => a.length - b.length || a.localeCompare(b));
+          // a pangram first (it solves the puzzle), then the shortest words
+          const solved = found.some(hiveIsPangram);
+          left.sort((a, b) => (solved ? 0 : (hiveIsPangram(b) ? 1 : 0) - (hiveIsPangram(a) ? 1 : 0)) || a.length - b.length || a.localeCompare(b));
           hintWord = { w: left[0], n: 1 };
         } else hintWord.n++;
         if (hintWord.n >= hintWord.w.length) {
           const w = hintWord.w;
           hintWord = null;
           found.push(w);
-          if (!done && score() >= geniusAt) { done = true; ctx.solved(); }
+          if (!done && hiveIsPangram(w)) { done = true; ctx.solved(); }
           render();
           return `Added ${w.toUpperCase()}`;
         }
