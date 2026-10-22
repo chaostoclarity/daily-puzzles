@@ -1,6 +1,6 @@
 # Daily Puzzles
 
-Eight daily puzzle games in one web app. Every puzzle is generated in the browser from the date, so there is a fresh set each day with no server, no database and no scheduled job.
+Fifteen daily puzzle games in one web app. Every puzzle is generated in the browser from the date, so there is a fresh set each day with no server, no database and no scheduled job.
 
 | Game | Plays like | Easy | Medium | Hard |
 |---|---|---|---|---|
@@ -12,6 +12,13 @@ Eight daily puzzle games in one web app. Every puzzle is generated in the browse
 | Mini Crossword | The Mini | 4x4 | 5x5 | 5x5, rarer words, synonym clues |
 | Hive | Spelling Bee | common words only | everyday dictionary | big dictionary |
 | Trivia | daily trivia | easy questions | medium | hard |
+| Sudoku | Sudoku | 40 givens | 32 givens | about 26 givens, still one answer |
+| Dominoes | Pips | 5 dominoes | 7 dominoes, more inequalities | 9 dominoes, more open squares |
+| Tiles | Tiles | 4x4, two layers | 5x4, three layers | 6x5, three layers, more designs |
+| Letter Square | Letter Boxed | target 6 words | target 5 | target 4, rarer letters |
+| Groups | Connections | everyday categories | one FIRE ___ style group | rarer words, up to two pattern groups |
+| Threads | Strands | 5x6 grid | 6x7 | 6x8, wider word pool |
+| Midi Crossword | The Midi | 7x7 | 7x7 | 7x7, synonym clues |
 
 Ladder's top and bottom words join into a compound word (FIRE + WORK). Hive is solved when you find a pangram.
 
@@ -44,6 +51,8 @@ Any static host works too: upload `dist/index.html`.
 
 - `words.json`: English word lists by commonness tier, from [SCOWL](http://wordlist.aspell.net/) via `wordlist-english` (MIT), filtered with the LDNOOBW blocklist via `naughty-words` (CC BY 4.0).
 - `clues.json`: short definitions and synonyms from [Princeton WordNet](https://wordnet.princeton.edu/) via `wordnet-db`.
+- `categories.json`: everyday WordNet categories (kinds of fish, furniture, trees) plus compound patterns (FIRE ___, ___ BALL), shared by Groups and Threads.
+- `compounds.json`: compound words for Ladder's top and bottom rungs.
 - `trivia.json`: questions from the [Open Trivia Database](https://opentdb.com/), licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
 Rebuild words and clues with `npm run data`. Trivia comes from `scripts/fetch-trivia.py`.

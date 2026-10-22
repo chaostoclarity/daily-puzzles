@@ -2,6 +2,11 @@
 import { wordsOf, clueFor } from '../lib/words.js';
 
 const TEMPLATES = {
+  7: [
+    ['...#...', '...#...', '.......', '##...##', '.......', '...#...', '...#...'],
+    ['##...##', '#.....#', '.......', '...#...', '.......', '#.....#', '##...##'],
+    ['#...###', '#....##', '.......', '...#...', '.......', '##....#', '###...#'],
+  ],
   4: [
     ['#...', '....', '....', '...#'],
     ['....', '....', '....', '....'],
@@ -17,6 +22,12 @@ const TEMPLATES = {
     ['##...', '.....', '.....', '.....', '...##'],
     ['#....', '#....', '.....', '....#', '....#'],
   ],
+};
+
+const MIDI = {
+  easy: { size: 7, tier: 35, clue: 'def' },
+  medium: { size: 7, tier: 35, clue: 'def' },
+  hard: { size: 7, tier: 50, clue: 'syn' },
 };
 
 const SETTINGS = {
@@ -124,12 +135,19 @@ function fill(tpl, tier, rng, budget) {
   return { slots, assigned, grid };
 }
 
+export function generateMidi(rng, difficulty = 'medium') {
+  return build(rng, MIDI[difficulty] || MIDI.medium, 12000);
+}
+
 export function generateMini(rng, difficulty = 'medium') {
-  const s = SETTINGS[difficulty] || SETTINGS.medium;
+  return build(rng, SETTINGS[difficulty] || SETTINGS.medium, 3000);
+}
+
+function build(rng, s, stepBudget) {
   const templates = TEMPLATES[s.size];
   for (let attempt = 0; attempt < 30; attempt++) {
     const tpl = rng.pick(templates);
-    const res = fill(tpl, s.tier, rng, 3000);
+    const res = fill(tpl, s.tier, rng, stepBudget);
     if (!res) continue;
     const n = tpl.length;
     // numbering in reading order

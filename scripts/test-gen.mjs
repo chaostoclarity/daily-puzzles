@@ -10,9 +10,17 @@ import { generateGuess, score } from '../src/gen/guess.js';
 import { generateHive } from '../src/gen/hive.js';
 import { generateMini } from '../src/gen/mini.js';
 import { generateTrivia, initTrivia } from '../src/gen/trivia.js';
+import { generateSudoku, countSolutions } from '../src/gen/sudoku.js';
+import { generateDominoes, ruleOk } from '../src/gen/dominoes.js';
+import { generateTiles, shared } from '../src/gen/tiles.js';
+import { generateLetterbox, letterboxError } from '../src/gen/letterbox.js';
+import { generateGroups, initCategories } from '../src/gen/groups.js';
+import { generateThreads } from '../src/gen/threads.js';
+import { generateMidi } from '../src/gen/mini.js';
 
 initWords(JSON.parse(fs.readFileSync('src/data/words.json')), JSON.parse(fs.readFileSync('src/data/clues.json')));
 initCompounds(JSON.parse(fs.readFileSync('src/data/compounds.json')));
+initCategories(JSON.parse(fs.readFileSync('src/data/categories.json')));
 if (fs.existsSync('src/data/trivia.json')) initTrivia(JSON.parse(fs.readFileSync('src/data/trivia.json')));
 
 const SEEDS = +(process.env.SEEDS || 25);
@@ -88,6 +96,57 @@ run('mini', {
 if (fs.existsSync('src/data/trivia.json')) run('trivia', {
   gen: generateTrivia,
   check: (p, d, s) => assert(p.questions.length === 10 && p.questions.every((q) => q.choices.includes(q.answer)), `trivia ${s}`),
+});
+
+run('sudoku', {
+  gen: generateSudoku,
+  check: (p, d, s) => { assert(countSolutions(p.givens, 2) === 1, `sudoku unique ${s}`); assert(p.givens.every((g, i) => !g || g === p.solution[i]), `sudoku givens ${s}`); },
+});
+run('domino', {
+  gen: generateDominoes,
+  check: (p, d, s) => {
+    const val = {}; for (const x of p.solution) x.cells.forEach((c, k) => (val[c] = x.values[k]));
+    assert(Object.keys(val).length === p.cells.length, `dominoes cover ${s}`);
+    for (const r of p.regions) assert(ruleOk(r.rule, r.cells.map((c) => val[c])), `dominoes rule ${s}`);
+  },
+});
+run('tiles', {
+  gen: generateTiles,
+  check: (p, d, s) => {
+    // greedy clear must always finish
+    const t = p.tiles.map((x) => ({ ...x }));
+    for (let guard = 0; guard < 500; guard++) {
+      const live = t.map((_, i) => i).filter((i) => Object.values(t[i]).some(Boolean));
+      if (!live.length) break;
+      let moved = false;
+      for (const a of live) { for (const b of live) if (a !== b) { const sh = shared(t[a], t[b]); if (sh.length) { sh.forEach((k) => { t[a][k] = null; t[b][k] = null; }); moved = true; break; } } if (moved) break; }
+      if (!moved) { assert(false, `tiles stuck ${s}`); break; }
+    }
+  },
+});
+run('letbox', {
+  gen: generateLetterbox,
+  check: (p, d, s) => {
+    assert(!letterboxError(p, p.solution[0], null) && !letterboxError(p, p.solution[1], p.solution[0]), `letterbox words ${s}`);
+    assert(new Set(p.solution.join('')).size === 12 && p.sides.every((x) => x.length === 3), `letterbox letters ${s}`);
+  },
+});
+run('groups', {
+  gen: generateGroups,
+  check: (p, d, s) => { assert(new Set(p.words).size === 16 && p.groups.every((g) => g.words.length === 4), `groups shape ${s}`); },
+});
+run('threads', {
+  gen: generateThreads,
+  check: (p, d, s) => {
+    assert(p.grid.every(Boolean), `threads full ${s}`);
+    const sp = p.words.find((w) => w.span);
+    assert(sp.cells.some((c) => c % p.cols === 0) && sp.cells.some((c) => c % p.cols === p.cols - 1), `threads span edges ${s}`);
+    for (const w of p.words) assert(w.cells.map((c) => p.grid[c]).join('') === w.word, `threads spell ${s}`);
+  },
+});
+run('midi', {
+  gen: generateMidi,
+  check: (p, d, s) => { for (const c of p.clues) assert(c.clue && c.cells.map((x) => p.solution[x]).join('') === c.answer, `midi ${s}`); },
 });
 
 // samples

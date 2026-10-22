@@ -18,12 +18,28 @@ import guess from './games/guess.js';
 import mini from './games/mini.js';
 import hive from './games/hive.js';
 import trivia from './games/trivia.js';
+import sudoku from './games/sudoku.js';
+import dominoes from './games/dominoes.js';
+import tiles from './games/tiles.js';
+import letterbox from './games/letterbox.js';
+import groups from './games/groups.js';
+import threads from './games/threads.js';
+import midi from './games/midi.js';
+import { initCategories } from './gen/groups.js';
+import categoriesJson from './data/categories.json';
 
 initWords(wordsJson, cluesJson);
 initTrivia(triviaJson);
 initCompounds(compoundsJson);
+initCategories(categoriesJson);
 
-const GAMES = [path, crowns, weave, ladder, guess, mini, hive, trivia];
+const SECTIONS = [
+  ['Logic', [path, crowns, sudoku, dominoes, tiles]],
+  ['Words', [guess, hive, groups, threads, weave, ladder, letterbox]],
+  ['Crosswords', [mini, midi]],
+  ['Knowledge', [trivia]],
+];
+const GAMES = SECTIONS.flatMap(([, list]) => list);
 const DIFFS = [['easy', 'Easy'], ['medium', 'Medium'], ['hard', 'Hard']];
 const app = document.getElementById('app');
 
@@ -72,7 +88,7 @@ function rulesSheet(g) {
 function renderHome() {
   cleanup();
   document.title = 'Daily Puzzles';
-  const cards = GAMES.map((g) => {
+  const card = (g) => {
     const d = diffOf(g);
     const key = seedKey(g, d, 0);
     const doneAt = store.get(`dp:done:${key}`);
@@ -84,14 +100,16 @@ function renderHome() {
         h('span', { class: 'card-name' }, g.name),
         h('span', { class: 'card-tag' }, g.tagline)),
       h('span', { class: 'card-meta' }, chip, h('span', { class: 'card-diff' }, DIFFS.find((x) => x[0] === d)[1])));
-  });
+  };
   const solvedCount = GAMES.filter((g) => store.get(`dp:done:${seedKey(g, diffOf(g), 0)}`)).length;
   put(app, h('main', { class: 'home' },
     h('header', { class: 'home-head' },
       h('p', { class: 'eyebrow' }, prettyDate()),
       h('h1', {}, 'Daily Puzzles'),
-      h('p', { class: 'home-sub' }, solvedCount === GAMES.length ? 'All eight solved today. New set at midnight.' : `${solvedCount} of ${GAMES.length} solved today. New puzzles every midnight.`)),
-    h('nav', { class: 'cards', 'aria-label': 'Games' }, cards),
+      h('p', { class: 'home-sub' }, solvedCount === GAMES.length ? `All ${GAMES.length} solved today. New set at midnight.` : `${solvedCount} of ${GAMES.length} solved today. New puzzles every midnight.`)),
+    h('nav', { class: 'sections', 'aria-label': 'Games' }, SECTIONS.map(([title, list]) => h('section', { class: 'section' },
+      h('h2', { class: 'section-title' }, title),
+      h('div', { class: 'cards' }, list.map(card))))),
     h('footer', { class: 'foot' },
       h('p', {}, 'Every puzzle is generated on your device from the date, so each day brings a fresh set with no server and no downloads.'),
       h('p', {}, 'Word lists from SCOWL, clues from Princeton WordNet, trivia from the ', h('a', { href: 'https://opentdb.com', target: '_blank', rel: 'noopener' }, 'Open Trivia Database'), ' (CC BY-SA 4.0).'))));
@@ -102,6 +120,7 @@ function renderHome() {
 let active = null; // { g, api, timer, ... }
 
 function cleanup() {
+  pendingBuild = null;
   if (active) {
     clearInterval(active.tick);
     active.api?.destroy?.();
@@ -110,6 +129,20 @@ function cleanup() {
 }
 
 function renderGame(g) {
+  cleanup();
+  // bigger grids take a moment to build; show something first
+  if (g.slow) {
+    put(app, h('main', { class: 'screen' }, h('p', { class: 'hint-line loading' }, `Building ${g.name}…`)));
+    const token = {};
+    pendingBuild = token;
+    setTimeout(() => { if (pendingBuild === token) buildGame(g); }, 30);
+    return;
+  }
+  buildGame(g);
+}
+
+let pendingBuild = null;
+function buildGame(g) {
   cleanup();
   const d = diffOf(g);
   const n = store.get(extraKey(g, d), 0);
@@ -133,6 +166,7 @@ function renderGame(g) {
   }, label)));
   const label = n === 0 ? "Today's puzzle" : `Extra puzzle ${n}`;
   const hintKey = `dp:h:${key}`;
+  const revealBtn = h('button', { class: 'link', type: 'button', onClick: () => confirmReveal() }, 'Show answer');
   const hintBtn = h('button', { class: 'btn small hint-btn', type: 'button', 'aria-label': 'Hint: solve one square or letter', onClick: (e) => { e.currentTarget.blur(); useHint(); } }, 'Hint');
   const body = h('div', { class: `game game-${g.id}` });
   const screen = h('main', { class: 'screen', style: { '--g': `var(--g-${g.id})` } },
@@ -147,7 +181,7 @@ function renderGame(g) {
         h('span', { class: 'puzzle-label' }, label,
           n > 0 ? h('button', { class: 'link', type: 'button', onClick: () => { store.set(extraKey(g, d), 0); renderGame(g); } }, 'Back to today') : null),
         h('span', { class: 'toolbar-btns' },
-          h('button', { class: 'link', type: 'button', onClick: confirmReveal }, 'Show answer'),
+          revealBtn,
           hintBtn,
           h('button', { class: 'btn small', type: 'button', onClick: newPuzzle }, 'New puzzle')))),
     body);
@@ -210,6 +244,8 @@ function renderGame(g) {
 
   window.__puzzle = puzzle; // handy for debugging in the console
   const api = g.mount(body, ctx) || {};
+  if (!api.reveal) revealBtn.hidden = true;
+  if (!api.hint) hintBtn.hidden = true;
   if (finished) timerEl.classList.add('stopped');
   active = {
     g, api,
@@ -232,8 +268,9 @@ document.addEventListener('keydown', (e) => {
   if (t && (t.tagName === 'BUTTON' || t.tagName === 'A' || t.tagName === 'SUMMARY') && (e.key === 'Enter' || e.key === ' ')) return;
   const k = keyCode(e);
   if (!k) return;
-  if ((k === 'tab' || k === 'shifttab') && active.g.id !== 'mini') return;
-  if (k === 'space' && active.g.id !== 'mini' && active.g.id !== 'hive') return;
+  if ((k === 'tab' || k === 'shifttab') && active.g.id !== 'mini' && active.g.id !== 'midi') return;
+  if (k === 'space' && active.g.id !== 'mini' && active.g.id !== 'midi' && active.g.id !== 'hive') return;
+  if (/^[0-9]$/.test(k) && active.g.id !== 'sudoku') return;
   e.preventDefault();
   active.api.onKey(k);
 });

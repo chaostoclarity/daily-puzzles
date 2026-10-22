@@ -65,6 +65,7 @@ export function keyCode(e) {
   if (e.key === 'Enter') return 'enter';
   if (e.key === 'Backspace' || e.key === 'Delete') return 'back';
   if (/^[a-zA-Z]$/.test(e.key)) return e.key.toLowerCase();
+  if (/^[0-9]$/.test(e.key)) return e.key;
   if (e.key.startsWith('Arrow')) return e.key.slice(5).toLowerCase();
   if (e.key === ' ') return 'space';
   if (e.key === 'Tab') return e.shiftKey ? 'shifttab' : 'tab';
