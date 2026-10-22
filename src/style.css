@@ -153,11 +153,11 @@ h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
 
 /* ---------- trail ---------- */
 .path-grid {
-  display: grid; grid-template-columns: repeat(var(--n), 1fr); aspect-ratio: 1; max-width: 100%;
+  display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); grid-template-rows: repeat(var(--n), minmax(0, 1fr)); aspect-ratio: 1; max-width: 100%; width: 100%;
   border: 2px solid var(--ink); border-radius: 8px; overflow: hidden; background: var(--surface);
   touch-action: none; user-select: none;
 }
-.path-cell { position: relative; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); display: grid; place-items: center; }
+.path-cell { min-width: 0; min-height: 0; position: relative; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); display: grid; place-items: center; }
 .path-cell.on { background: color-mix(in srgb, var(--g) 18%, var(--surface)); }
 .path-cell.wall-r { border-right: 5px solid var(--ink); }
 .path-cell.wall-b { border-bottom: 5px solid var(--ink); }
@@ -170,14 +170,15 @@ h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
 
 /* ---------- crowns ---------- */
 .crown-grid {
-  display: grid; grid-template-columns: repeat(var(--n), 1fr); aspect-ratio: 1; max-width: 100%;
+  display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); grid-template-rows: repeat(var(--n), minmax(0, 1fr)); aspect-ratio: 1; max-width: 100%; width: 100%;
   border: 2px solid var(--ink); border-radius: 6px; overflow: hidden; touch-action: none; user-select: none;
 }
-.crown-cell { border: 0; border-right: 1px solid rgb(0 0 0 / 0.12); border-bottom: 1px solid rgb(0 0 0 / 0.12); padding: 0; display: grid; place-items: center; cursor: pointer; color: var(--ink); }
+.crown-cell { position: relative; min-width: 0; min-height: 0; overflow: hidden; border: 0; border-right: 1px solid rgb(0 0 0 / 0.12); border-bottom: 1px solid rgb(0 0 0 / 0.12); padding: 0; margin: 0; display: grid; place-items: center; cursor: pointer; color: var(--ink); font-size: 0; line-height: 0; }
 .crown-cell.edge-r { border-right: 2.5px solid var(--ink); }
 .crown-cell.edge-b { border-bottom: 2.5px solid var(--ink); }
-.crown-cell svg { width: 62%; height: 62%; }
-.crown-cell .xmark { font-size: clamp(1rem, 5vw, 1.5rem); color: var(--muted); line-height: 1; }
+.crown-cell svg { position: absolute; left: 19%; top: 19%; width: 62%; height: 62%; }
+.crown-cell .xmark { position: absolute; inset: 0; display: grid; place-items: center; font-size: clamp(1rem, 5vw, 1.5rem); color: var(--muted); line-height: 1; }
+.crown-cell .xmark.auto { opacity: 0.45; }
 .crown-cell.bad { color: var(--bad); }
 .crown-cell.bad.crown { background-image: repeating-linear-gradient(45deg, transparent 0 6px, color-mix(in srgb, var(--bad) 22%, transparent) 6px 9px); }
 .rg0 { background-color: var(--r0); } .rg1 { background-color: var(--r1); } .rg2 { background-color: var(--r2); }
@@ -187,7 +188,7 @@ h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
 /* ---------- weave ---------- */
 .weave-current { text-align: center; font-family: var(--f-display); font-weight: 700; font-size: 1.6rem; letter-spacing: 0.12em; min-height: 2.3rem; }
 .weave-board { width: min(100%, 400px); }
-.weave-grid { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--c), 1fr); grid-template-rows: repeat(var(--r), 1fr); gap: 0; touch-action: none; user-select: none; }
+.weave-grid { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--c), minmax(0, 1fr)); grid-template-rows: repeat(var(--r), minmax(0, 1fr)); gap: 0; touch-action: none; user-select: none; }
 .weave-cell {
   position: relative; z-index: 2; margin: 12%; border-radius: 50%;
   display: grid; place-items: center; font-family: var(--f-display); font-weight: 700; font-size: clamp(1.1rem, 5.5vw, 1.7rem);
@@ -267,10 +268,10 @@ h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
 /* ---------- mini crossword ---------- */
 .mini-bar { cursor: pointer; }
 .mini-grid {
-  display: grid; grid-template-columns: repeat(var(--n), 1fr); aspect-ratio: 1; max-width: 100%;
+  display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); grid-template-rows: repeat(var(--n), minmax(0, 1fr)); aspect-ratio: 1; max-width: 100%; width: 100%;
   border: 2px solid var(--block); background: var(--block); gap: 1px; user-select: none;
 }
-.mini-cell { position: relative; background: var(--surface); display: grid; place-items: center; cursor: pointer; }
+.mini-cell { min-width: 0; min-height: 0; position: relative; background: var(--surface); display: grid; place-items: center; cursor: pointer; }
 .mini-cell.block { background: var(--block); cursor: default; }
 .mini-cell.word { background: color-mix(in srgb, var(--g) 16%, var(--surface)); }
 .mini-cell.cur { background: color-mix(in srgb, var(--mark) 70%, var(--surface)); }

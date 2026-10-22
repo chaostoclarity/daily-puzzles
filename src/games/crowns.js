@@ -14,6 +14,7 @@ export default {
     'Crowns can never touch, not even at a corner.',
     'Tap a square once to mark it with an X, twice for a crown, three times to clear.',
     'Drag across empty squares to mark several Xs at once.',
+    'Placing a crown automatically Xs out every square it rules out. Remove the crown and those Xs go away.',
   ],
   mount(root, ctx) {
     const p = ctx.puzzle;
@@ -87,11 +88,21 @@ export default {
     function render() {
       const crowns = new Set(mark.map((m, i) => (m === 2 ? i : -1)).filter((i) => i >= 0));
       const bad = showConflicts ? crownConflicts(p, crowns) : new Set();
+      // squares a placed crown rules out get an automatic, lighter X
+      const blocked = new Set();
+      for (const q of crowns) {
+        const qr = Math.floor(q / n), qc = q % n;
+        for (let c = 0; c < n * n; c++) {
+          const r = Math.floor(c / n), k = c % n;
+          if (r === qr || k === qc || region[c] === region[q] || (Math.abs(r - qr) <= 1 && Math.abs(k - qc) <= 1)) blocked.add(c);
+        }
+      }
       cells.forEach((el, c) => {
-        el.classList.toggle('x', mark[c] === 1);
+        const auto = mark[c] === 0 && blocked.has(c);
+        el.classList.toggle('x', mark[c] === 1 || auto);
         el.classList.toggle('crown', mark[c] === 2);
         el.classList.toggle('bad', bad.has(c));
-        el.innerHTML = mark[c] === 2 ? CROWN : mark[c] === 1 ? '<span class="xmark" aria-hidden="true">×</span>' : '';
+        el.innerHTML = mark[c] === 2 ? CROWN : mark[c] === 1 ? '<span class="xmark" aria-hidden="true">×</span>' : auto ? '<span class="xmark auto" aria-hidden="true">×</span>' : '';
         el.setAttribute('aria-pressed', mark[c] === 2 ? 'true' : 'false');
       });
       if (!done) status.textContent = `${crowns.size} of ${n} crowns placed`;
