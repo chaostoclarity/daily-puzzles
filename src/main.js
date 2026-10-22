@@ -51,6 +51,9 @@ const prettyDate = () => new Date().toLocaleDateString(undefined, { weekday: 'lo
 const diffOf = (g) => store.get(`dp:diff:${g.id}`, 'medium');
 const extraKey = (g, d) => `dp:n:${today()}|${g.id}|${d}`;
 const seedKey = (g, d, n) => `${today()}|${g.id}|${d}|${n}`;
+// Saved progress is keyed by seed plus the game's version, so when a generator changes,
+// old saves for the same day don't get loaded onto a different board.
+const saveKey = (g, d, n) => seedKey(g, d, n) + (g.version ? `#v${g.version}` : '');
 
 // ---------- toast ----------
 const toastEl = h('div', { class: 'toast', role: 'status', 'aria-live': 'polite' });
@@ -90,9 +93,9 @@ function renderHome() {
   document.title = 'Daily Puzzles';
   const card = (g) => {
     const d = diffOf(g);
-    const key = seedKey(g, d, 0);
-    const doneAt = store.get(`dp:done:${key}`);
-    const started = store.get(`dp:s:${key}`);
+    const sk = saveKey(g, d, 0);
+    const doneAt = store.get(`dp:done:${sk}`);
+    const started = store.get(`dp:s:${sk}`);
     const chip = doneAt ? h('span', { class: 'chip done' }, 'Solved') : started ? h('span', { class: 'chip' }, 'In progress') : null;
     return h('a', { class: 'card', href: `#${g.id}`, style: { '--g': `var(--g-${g.id})` } },
       h('span', { class: 'card-icon', html: ICONS[g.id] }),
@@ -101,7 +104,7 @@ function renderHome() {
         h('span', { class: 'card-tag' }, g.tagline)),
       h('span', { class: 'card-meta' }, chip, h('span', { class: 'card-diff' }, DIFFS.find((x) => x[0] === d)[1])));
   };
-  const solvedCount = GAMES.filter((g) => store.get(`dp:done:${seedKey(g, diffOf(g), 0)}`)).length;
+  const solvedCount = GAMES.filter((g) => store.get(`dp:done:${saveKey(g, diffOf(g), 0)}`)).length;
   put(app, h('main', { class: 'home' },
     h('header', { class: 'home-head' },
       h('p', { class: 'eyebrow' }, prettyDate()),
@@ -147,6 +150,7 @@ function buildGame(g) {
   const d = diffOf(g);
   const n = store.get(extraKey(g, d), 0);
   const key = seedKey(g, d, n);
+  const sk = saveKey(g, d, n);
   document.title = `${g.name} · Daily Puzzles`;
 
   let puzzle;
@@ -155,9 +159,9 @@ function buildGame(g) {
     puzzle = g.generate(makeRng(key + '|retry'), d);
   }
 
-  const timeKey = `dp:t:${key}`;
+  const timeKey = `dp:t:${sk}`;
   let secs = store.get(timeKey, 0);
-  let finished = !!store.get(`dp:done:${key}`) || !!store.get(`dp:s:${key}`)?.revealed || store.get(`dp:s:${key}`)?.over === 'lost';
+  let finished = !!store.get(`dp:done:${sk}`) || !!store.get(`dp:s:${sk}`)?.revealed || store.get(`dp:s:${sk}`)?.over === 'lost';
   const timerEl = h('span', { class: 'timer', 'aria-label': 'Time' }, fmtTime(secs));
 
   const seg = h('div', { class: 'seg', role: 'radiogroup', 'aria-label': 'Difficulty' }, DIFFS.map(([id, label]) => h('button', {
@@ -165,7 +169,7 @@ function buildGame(g) {
     onClick: () => { if (id !== d) { store.set(`dp:diff:${g.id}`, id); renderGame(g); } },
   }, label)));
   const label = n === 0 ? "Today's puzzle" : `Extra puzzle ${n}`;
-  const hintKey = `dp:h:${key}`;
+  const hintKey = `dp:h:${sk}`;
   const revealBtn = h('button', { class: 'link', type: 'button', onClick: () => confirmReveal() }, 'Show answer');
   const hintBtn = h('button', { class: 'btn small hint-btn', type: 'button', 'aria-label': 'Hint: solve one square or letter', onClick: (e) => { e.currentTarget.blur(); useHint(); } }, 'Hint');
   const body = h('div', { class: `game game-${g.id}` });
@@ -195,7 +199,7 @@ function buildGame(g) {
   }
 
   // Hive keeps going after it's solved, so its hints and answers stay available until revealed
-  const playable = () => !finished || (g.playsOn && !store.get(`dp:s:${key}`)?.revealed);
+  const playable = () => !finished || (g.playsOn && !store.get(`dp:s:${sk}`)?.revealed);
 
   function useHint() {
     if (!playable()) { toast('This puzzle is already finished'); return; }
@@ -217,18 +221,18 @@ function buildGame(g) {
       h('p', {}, 'This ends the puzzle and fills in the solution.'),
       h('div', { class: 'sheet-actions' },
         h('button', { class: 'btn', type: 'button', onClick: close }, 'Keep playing'),
-        h('button', { class: 'btn primary', type: 'button', onClick: () => { close(); api.reveal(); stop(); store.set(`dp:s:${key}`, { ...(store.get(`dp:s:${key}`) || {}), revealed: true }); } }, 'Show answer')),
+        h('button', { class: 'btn primary', type: 'button', onClick: () => { close(); api.reveal(); stop(); store.set(`dp:s:${sk}`, { ...(store.get(`dp:s:${sk}`) || {}), revealed: true }); } }, 'Show answer')),
     ]);
   }
 
   const ctx = {
     puzzle, difficulty: d, toast,
-    load: () => store.get(`dp:s:${key}`),
-    save: (state) => store.set(`dp:s:${key}`, state),
+    load: () => store.get(`dp:s:${sk}`),
+    save: (state) => store.set(`dp:s:${sk}`, state),
     finished: () => stop(),
     solved: (summary) => {
       stop();
-      store.set(`dp:done:${key}`, secs);
+      store.set(`dp:done:${sk}`, secs);
       const mine = active;
       setTimeout(() => active === mine && sheet((close) => [
         h('div', { class: 'sheet-head' }, h('span', { class: 'sheet-icon', style: { '--g': `var(--g-${g.id})` }, html: ICONS[g.id] }), h('h2', {}, summary ? `${g.name}: ${summary}` : `${g.name} solved`)),

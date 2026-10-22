@@ -111,11 +111,17 @@ export function generateThreads(rng, difficulty = 'medium') {
   const s = SETTINGS[difficulty] || SETTINGS.medium;
   const cats = getCategories().filter((c) => c.k === 'kind');
   const total = s.rows * s.cols;
-  for (const c of rng.shuffle(cats)) {
-    const span = plural(c.n.replace(/ /g, ''));
-    if (span.length < s.cols || span.length > Math.min(12, total - 8)) continue;
-    const pool = (s.first ? c.f : c.w).filter((w) => (tier(w) ?? 99) <= s.tier && w.length >= 4 && w.length <= 8 && !span.includes(w));
-    if (pool.length < Math.ceil((total - span.length) / 6) + 2) continue;
+  const spanOf = (c) => plural(c.n.replace(/ /g, ''));
+  const poolOf = (c, span) => (s.first ? c.f : c.w).filter((w) => (tier(w) ?? 99) <= s.tier && w.length >= 4 && w.length <= 8 && !span.includes(w));
+  // only themes that fit this grid go in the deck, so each New puzzle round moves to a fresh theme
+  const fits = cats.filter((c) => {
+    const span = spanOf(c);
+    if (span.length < s.cols || span.length > Math.min(12, total - 8)) return false;
+    return poolOf(c, span).length >= Math.ceil((total - span.length) / 6) + 2;
+  });
+  for (const c of rng.deal(fits, 3, 't')) {
+    const span = spanOf(c);
+    const pool = poolOf(c, span);
     const byLen = {};
     for (const w of pool) (byLen[w.length] ||= []).push(w);
     const lengths = Object.keys(byLen).map(Number);

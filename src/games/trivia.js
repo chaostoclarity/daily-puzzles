@@ -3,6 +3,7 @@ import { generateTrivia } from '../gen/trivia.js';
 
 export default {
   id: 'trivia',
+  version: 2, // bump when the generator changes, so old saves don't load onto a new board
   name: 'Trivia',
   tagline: 'Ten questions, a new round every day',
   inspired: 'Daily trivia',

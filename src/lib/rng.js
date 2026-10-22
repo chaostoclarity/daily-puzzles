@@ -34,6 +34,29 @@ export function makeRng(seed) {
       return a;
     },
     fork: (suffix) => makeRng(seed + '|' + suffix),
+    /**
+     * Orders a list so that New puzzle rounds on the same day don't reuse items.
+     * Every round of a day shares one shuffled deck; round n starts reading it
+     * n * perRound items in, and wraps around. Generators scan the result in order and
+     * take what they need, so round 1 picks up roughly where round 0 stopped.
+     * Seeds that aren't "<day key>|<round>" just get a plain shuffle.
+     */
+    deal: (list, perRound = 1, tag = '') => {
+      const m = /^(.+)\|(\d+)$/.exec(String(seed));
+      if (!m || !list.length) return rng.shuffle(list);
+      const start = Number(m[2]) * perRound;
+      const cycle = Math.floor(start / list.length);
+      const deck = makeRng(`${m[1]}|deck|${tag}|${cycle}`).shuffle(list);
+      const off = start % list.length;
+      return deck.slice(off).concat(deck.slice(0, off));
+    },
   };
   return rng;
 }
+
+/** Rotates a list left by k (used to vary retries without leaving the dealt order). */
+export const rotate = (list, k) => {
+  if (!list.length) return list;
+  const o = ((k % list.length) + list.length) % list.length;
+  return list.slice(o).concat(list.slice(0, o));
+};

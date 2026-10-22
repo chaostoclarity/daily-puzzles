@@ -3,6 +3,7 @@ import { generateLadder, oneApart } from '../gen/ladder.js';
 
 export default {
   id: 'ladder',
+  version: 2, // bump when the generator changes, so old saves don't load onto a new board
   name: 'Ladder',
   tagline: 'Climb a chain of one-letter changes',
   inspired: 'Crossclimb',

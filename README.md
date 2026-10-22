@@ -28,6 +28,8 @@ Each game has Easy, Medium and Hard, a **New puzzle** button for an extra round,
 
 The seed is `date | game | difficulty | extra-round number`. The same seed always produces the same puzzle on any device, so today's puzzle is the same on your phone and laptop, and tomorrow's is new. Generators use step budgets rather than clocks, so slow devices get identical results.
 
+Games that draw from a fixed bank (Trivia questions, Groups and Threads categories, Ladder compounds, Word Guess answers) deal from one shuffled deck per day, so pressing **New puzzle** moves on to items you haven't seen that day instead of drawing at random again. When a generator changes, bump the game's `version` so saved progress from the old board isn't loaded onto the new one.
+
 ## Run it
 
 ```bash

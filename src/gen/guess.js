@@ -10,7 +10,7 @@ const SETTINGS = {
 export function generateGuess(rng, difficulty = 'medium') {
   const s = SETTINGS[difficulty] || SETTINGS.medium;
   const pool = wordsOf(s.len, s.tier, { clued: true }).filter((w) => !(w.endsWith('s') && !w.endsWith('ss')));
-  return { answer: rng.pick(pool), len: s.len, tries: s.tries, strict: s.strict };
+  return { answer: rng.deal(pool, 1, 'a')[0], len: s.len, tries: s.tries, strict: s.strict };
 }
 
 export const validGuess = (w) => isWord(w, 60);

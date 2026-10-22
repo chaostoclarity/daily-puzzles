@@ -7,8 +7,9 @@ const ROUND = 10;
 export function generateTrivia(rng, difficulty = 'medium') {
   const pool = bank.filter((q) => q.d === difficulty);
   const src = pool.length >= ROUND ? pool : bank;
-  // spread across categories: shuffle, then take at most 2 per category on the first pass
-  const shuffled = rng.shuffle(src);
+  // spread across categories: deal, then take at most 2 per category on the first pass.
+  // Dealing keeps New puzzle rounds on the same day from repeating questions.
+  const shuffled = rng.deal(src, 14, 'q');
   const per = {};
   const picked = [];
   for (const q of shuffled) {

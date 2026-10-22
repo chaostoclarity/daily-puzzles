@@ -6,6 +6,7 @@ const MARK = ['miss', 'near', 'hit'];
 
 export default {
   id: 'guess',
+  version: 2, // bump when the generator changes, so old saves don't load onto a new board
   name: 'Word Guess',
   tagline: 'Find the hidden word in six tries',
   inspired: 'Wordle',

@@ -4,6 +4,7 @@ import { isWord } from '../lib/words.js';
 
 export default {
   id: 'threads',
+  version: 2, // bump when the generator changes, so old saves don't load onto a new board
   name: 'Threads',
   tagline: 'Find the theme words that fill the grid',
   inspired: 'Strands',

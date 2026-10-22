@@ -52,7 +52,8 @@ export function generateLadder(rng, difficulty = 'medium') {
   const s = SETTINGS[difficulty] || SETTINGS.medium;
   const adj = graphFor(s);
   const mids = s.rungs - 2;
-  const pool = rng.shuffle(compounds.filter((c) => c[0].length === s.len));
+  // dealt, so each New puzzle round on a day starts from a compound not used yet
+  const pool = rng.deal(compounds.filter((c) => c[0].length === s.len), 6, 'c');
   for (const [top, bottom, compoundClue] of pool) {
     const nbTop = neighborsOf(adj, top).filter((w) => w !== bottom);
     const nbBottom = new Set(neighborsOf(adj, bottom).filter((w) => w !== top));

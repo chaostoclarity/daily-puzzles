@@ -2,14 +2,15 @@
 // Groups come from dictionary categories (kinds of fish) and compound patterns (FIRE ___).
 // Every word fits only its own group among the four on the board.
 import { tier } from '../lib/words.js';
+import { rotate } from '../lib/rng.js';
 
 let categories = [];
 export function initCategories(data) { categories = data; }
 export const getCategories = () => categories;
 
 const SETTINGS = {
-  easy: { tier: 20, compound: [0, 0], first: true },
-  medium: { tier: 35, compound: [1, 1], first: true },
+  easy: { tier: 35, compound: [0, 0], first: true },
+  medium: { tier: 40, compound: [1, 1], first: true },
   hard: { tier: 50, compound: [1, 2], first: false },
 };
 
@@ -19,10 +20,17 @@ export function generateGroups(rng, difficulty = 'medium') {
   const s = SETTINGS[difficulty] || SETTINGS.medium;
   const fullSet = categories.map((c) => new Set(c.w));
   const usable = (w) => (tier(w) ?? 99) <= s.tier && w.length <= 10;
+  // Deal kinds and patterns as two decks so New puzzle rounds on the same day move on to
+  // categories not used yet. Only categories with four usable words go in.
+  const fits = (ci) => (s.first && categories[ci].f ? categories[ci].f : categories[ci].w).filter(usable).length >= 4;
+  const keys = [...categories.keys()].filter(fits);
+  const kinds = rng.deal(keys.filter((ci) => categories[ci].k === 'kind'), 5, 'k');
+  const patterns = rng.deal(keys.filter((ci) => categories[ci].k !== 'kind'), 2, 'p');
   for (let attempt = 0; attempt < 200; attempt++) {
     const wantCompound = rng.range(s.compound[0], s.compound[1]);
     const picked = []; // { ci, words }
-    const order = rng.shuffle([...categories.keys()]);
+    // a failed attempt slides a little further along the decks rather than starting over
+    const order = [...rotate(kinds, attempt * 2), ...rotate(patterns, attempt)];
     for (const ci of order) {
       if (picked.length === 4) break;
       const c = categories[ci];
