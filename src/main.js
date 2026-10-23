@@ -173,22 +173,24 @@ function buildGame(g) {
   const revealBtn = h('button', { class: 'link', type: 'button', onClick: () => confirmReveal() }, 'Show answer');
   const hintBtn = h('button', { class: 'btn small hint-btn', type: 'button', 'aria-label': 'Hint: solve one square or letter', onClick: (e) => { e.currentTarget.blur(); useHint(); } }, 'Hint');
   const body = h('div', { class: `game game-${g.id}` });
+  // Hint stays up top next to the board; difficulty and round controls sit below the
+  // puzzle so the board gets the top of the screen.
   const screen = h('main', { class: 'screen', style: { '--g': `var(--g-${g.id})` } },
     h('header', { class: 'topbar' },
       h('a', { class: 'back', href: '#', 'aria-label': 'All games' }, '‹', h('span', {}, 'Games')),
       h('h1', { class: 'title' }, h('span', { class: 'title-icon', html: ICONS[g.id] }), g.name),
       timerEl,
+      hintBtn,
       h('button', { class: 'icon-btn help', type: 'button', 'aria-label': 'How to play', onClick: () => rulesSheet(g) }, '?')),
-    h('div', { class: 'toolbar' },
-      seg,
+    body,
+    h('footer', { class: 'toolbar' },
       h('div', { class: 'toolbar-row' },
         h('span', { class: 'puzzle-label' }, label,
           n > 0 ? h('button', { class: 'link', type: 'button', onClick: () => { store.set(extraKey(g, d), 0); renderGame(g); } }, 'Back to today') : null),
         h('span', { class: 'toolbar-btns' },
           revealBtn,
-          hintBtn,
-          h('button', { class: 'btn small', type: 'button', onClick: newPuzzle }, 'New puzzle')))),
-    body);
+          h('button', { class: 'btn small', type: 'button', onClick: newPuzzle }, 'New puzzle'))),
+      seg));
   put(app, screen);
   window.scrollTo(0, 0);
 

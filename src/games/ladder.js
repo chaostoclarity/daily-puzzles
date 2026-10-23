@@ -34,7 +34,7 @@ export default {
     const endWord = (k) => ((k === 'top') !== reversed() ? p.top : p.bottom);
 
     const clueBox = h('div', { class: 'clue-bar', 'aria-live': 'polite' });
-    const list = h('div', { class: 'ladder', role: 'list' });
+    const list = h('div', { class: 'ladder', role: 'list', style: { '--rungs': mids.length + 2 } });
     const status = h('p', { class: 'hint-line', 'aria-live': 'polite' });
     const kb = keyboard(onKey);
     root.append(clueBox, list, status, kb.el);
