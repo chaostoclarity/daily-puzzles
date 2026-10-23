@@ -17,6 +17,7 @@ import { generateLetterbox, letterboxError } from '../src/gen/letterbox.js';
 import { generateGroups, initCategories } from '../src/gen/groups.js';
 import { generateThreads } from '../src/gen/threads.js';
 import { generateMidi } from '../src/gen/mini.js';
+import { generateBongo, scoreBoard as bongoScore } from '../src/gen/bongo.js';
 import { generateFlipart, solvedBy as faSolved } from '../src/gen/flipart.js';
 import { generateWordbind, bindable } from '../src/gen/wordbind.js';
 import { generatePileup, handOf, scoreBoard } from '../src/gen/pileup.js';
@@ -130,6 +131,15 @@ run('tiles', {
       for (const a of live) { for (const b of live) if (a !== b) { const sh = shared(t[a], t[b]); if (sh.length) { sh.forEach((k) => { t[a][k] = null; t[b][k] = null; }); moved = true; break; } } if (moved) break; }
       if (!moved) { assert(false, `tiles stuck ${s}`); break; }
     }
+  },
+});
+run('bongo', {
+  gen: generateBongo,
+  check: (p, d, s) => {
+    assert(p.tiles.length === 26, `bongo tile count ${s}`);
+    const left = [...p.tiles]; for (const ch of p.solution) { const k = left.indexOf(ch); assert(k >= 0, `bongo tiles ${s}`); left.splice(k, 1); }
+    const sc = bongoScore(p, p.solution);
+    assert(sc.rows.every(Boolean) && sc.snake && sc.total === p.target, `bongo planted board scores ${s}`);
   },
 });
 run('flipart', {
