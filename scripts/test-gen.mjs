@@ -17,6 +17,7 @@ import { generateLetterbox, letterboxError } from '../src/gen/letterbox.js';
 import { generateGroups, initCategories } from '../src/gen/groups.js';
 import { generateThreads } from '../src/gen/threads.js';
 import { generateMidi } from '../src/gen/mini.js';
+import { generateWordscapes, fits as wsFits } from '../src/gen/wordscapes.js';
 import { generateSeats, holds as seatHolds } from '../src/gen/seats.js';
 import { generateTypeshift, wordsFrom, minCover } from '../src/gen/typeshift.js';
 import { generateWaffle, minSwaps, colorsFor, LINES, CELLS } from '../src/gen/waffle.js';
@@ -125,6 +126,21 @@ run('tiles', {
       for (const a of live) { for (const b of live) if (a !== b) { const sh = shared(t[a], t[b]); if (sh.length) { sh.forEach((k) => { t[a][k] = null; t[b][k] = null; }); moved = true; break; } } if (moved) break; }
       if (!moved) { assert(false, `tiles stuck ${s}`); break; }
     }
+  },
+});
+run('wordscapes', {
+  gen: generateWordscapes,
+  check: (p, d, s) => {
+    const letters = p.letters.join('');
+    assert(p.words.every((w) => wsFits(w.word, letters) && isWord(w.word)), `wordscapes words ${s}`);
+    // every grid cell agrees between crossing words, and words connect
+    const cell = new Map();
+    for (const w of p.words) for (let i = 0; i < w.word.length; i++) {
+      const k = (w.r + (w.dir === 'down' ? i : 0)) + ',' + (w.c + (w.dir === 'across' ? i : 0));
+      assert(!cell.has(k) || cell.get(k) === w.word[i], `wordscapes clash ${s}`);
+      cell.set(k, w.word[i]);
+    }
+    assert(p.words.length >= (d === 'easy' ? 5 : d === 'medium' ? 7 : 8), `wordscapes only ${p.words.length} words ${s}`);
   },
 });
 run('seats', {
