@@ -29,6 +29,7 @@
   --g-dominoes: #8a5a2b;
   --g-tiles: #b0457a;
   --g-letterbox: #d0532b;
+  --g-waffle: #b8862b;
   --g-groups: #6a4fc0;
   --g-threads: #1f7a99;
   --g-midi: #234a8f;
@@ -47,7 +48,7 @@
     --paper: #11151d; --grid: #181e29; --surface: #1a202c; --ink: #e8ecf4; --muted: #9aa3b5; --line: #2f3747; --soft: #232a38;
     --mark: #e8b71a; --hit: #3f9a5f; --near: #b58c1c; --miss: #3d4556; --bad: #ef6a5f; --on-color: #ffffff; --block: #06080d;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 18px rgb(0 0 0 / 0.25);
-    --g-path: #34b3ac; --g-crowns: #a984df; --g-weave: #7cbf5b; --g-ladder: #ec8a3e; --g-guess: #4fbd7b; --g-mini: #6b94e3; --g-hive: #e2ad2c; --g-trivia: #ec6b62; --g-sudoku: #7ea3d6; --g-dominoes: #d29a5e; --g-tiles: #e07fb0; --g-letterbox: #f08458; --g-groups: #a68cf0; --g-threads: #4fb6d8; --g-midi: #6f97e0; --lv0: #8f7a1e; --lv1: #4f7a3a; --lv2: #3b5c8f; --lv3: #6a4c8c;
+    --g-path: #34b3ac; --g-crowns: #a984df; --g-weave: #7cbf5b; --g-ladder: #ec8a3e; --g-guess: #4fbd7b; --g-mini: #6b94e3; --g-hive: #e2ad2c; --g-trivia: #ec6b62; --g-sudoku: #7ea3d6; --g-dominoes: #d29a5e; --g-tiles: #e07fb0; --g-letterbox: #f08458; --g-groups: #a68cf0; --g-threads: #4fb6d8; --g-midi: #6f97e0; --g-waffle: #dcae52; --lv0: #8f7a1e; --lv1: #4f7a3a; --lv2: #3b5c8f; --lv3: #6a4c8c;
     --r0: #74343f; --r1: #2c5088; --r2: #2f6542; --r3: #6f5c14; --r4: #553d82; --r5: #1c625e; --r6: #84481c; --r7: #4a5262; --r8: #712b62;
     --w0: #2f5a3d; --w1: #2f4670; --w2: #5f4c19; --w3: #523865; --w4: #66382f; --w5: #235654; --w6: #4d5222; --w7: #5c2f48;
     color-scheme: dark;
@@ -57,7 +58,7 @@
   --paper: #11151d; --grid: #181e29; --surface: #1a202c; --ink: #e8ecf4; --muted: #9aa3b5; --line: #2f3747; --soft: #232a38;
   --mark: #e8b71a; --hit: #3f9a5f; --near: #b58c1c; --miss: #3d4556; --bad: #ef6a5f; --on-color: #ffffff; --block: #06080d;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 18px rgb(0 0 0 / 0.25);
-  --g-path: #34b3ac; --g-crowns: #a984df; --g-weave: #7cbf5b; --g-ladder: #ec8a3e; --g-guess: #4fbd7b; --g-mini: #6b94e3; --g-hive: #e2ad2c; --g-trivia: #ec6b62; --g-sudoku: #7ea3d6; --g-dominoes: #d29a5e; --g-tiles: #e07fb0; --g-letterbox: #f08458; --g-groups: #a68cf0; --g-threads: #4fb6d8; --g-midi: #6f97e0; --lv0: #8f7a1e; --lv1: #4f7a3a; --lv2: #3b5c8f; --lv3: #6a4c8c;
+  --g-path: #34b3ac; --g-crowns: #a984df; --g-weave: #7cbf5b; --g-ladder: #ec8a3e; --g-guess: #4fbd7b; --g-mini: #6b94e3; --g-hive: #e2ad2c; --g-trivia: #ec6b62; --g-sudoku: #7ea3d6; --g-dominoes: #d29a5e; --g-tiles: #e07fb0; --g-letterbox: #f08458; --g-groups: #a68cf0; --g-threads: #4fb6d8; --g-midi: #6f97e0; --g-waffle: #dcae52; --lv0: #8f7a1e; --lv1: #4f7a3a; --lv2: #3b5c8f; --lv3: #6a4c8c;
   --r0: #74343f; --r1: #2c5088; --r2: #2f6542; --r3: #6f5c14; --r4: #553d82; --r5: #1c625e; --r6: #84481c; --r7: #4a5262; --r8: #712b62;
   --w0: #2f5a3d; --w1: #2f4670; --w2: #5f4c19; --w3: #523865; --w4: #66382f; --w5: #235654; --w6: #4d5222; --w7: #5c2f48;
   color-scheme: dark;
@@ -551,3 +552,20 @@ body::before { content: ''; position: fixed; inset: 0 0 auto; height: env(safe-a
 .weave-cell.found.span { background: color-mix(in srgb, var(--mark) 75%, var(--surface)); }
 .weave-line.theme { stroke: color-mix(in srgb, var(--g) 30%, var(--surface)); }
 .weave-line.span { stroke: color-mix(in srgb, var(--mark) 75%, var(--surface)); }
+
+/* ---------- waffle ---------- */
+.wf-board { width: min(100%, 380px); }
+.wf-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; user-select: none; }
+.wf-hole { aspect-ratio: 1; }
+.wf-tile {
+  aspect-ratio: 1; border: 0; border-radius: 10px; padding: 0; cursor: pointer; touch-action: manipulation;
+  font-family: var(--f-display); font-weight: 700; font-size: clamp(1.4rem, 8vw, 2.2rem); color: var(--on-color);
+  background: var(--miss); transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.wf-tile.hit { background: var(--hit); cursor: default; }
+.wf-tile.near { background: var(--near); }
+.wf-tile.sel { transform: scale(0.9); box-shadow: 0 0 0 3px var(--paper), 0 0 0 6px var(--ink); }
+.wf-tile:disabled { cursor: default; }
+.wf-meter { display: flex; justify-content: center; gap: 14px; margin: 0; color: var(--muted); }
+.wf-meter b { color: var(--ink); font-size: 1.15rem; }
+.wf-par { opacity: 0.8; }

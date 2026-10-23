@@ -1,6 +1,6 @@
 # Daily Puzzles
 
-Fifteen daily puzzle games in one web app. Every puzzle is generated in the browser from the date, so there is a fresh set each day with no server, no database and no scheduled job.
+Sixteen daily puzzle games in one web app. Every puzzle is generated in the browser from the date, so there is a fresh set each day with no server, no database and no scheduled job.
 
 | Game | Plays like | Easy | Medium | Hard |
 |---|---|---|---|---|
@@ -19,6 +19,7 @@ Fifteen daily puzzle games in one web app. Every puzzle is generated in the brow
 | Groups | Connections | everyday categories | one FIRE ___ style group | rarer words, up to two pattern groups |
 | Threads | Strands | 5x6 grid | 6x7 | 6x8, wider word pool |
 | Midi Crossword | The Midi | 7x7 | 7x7 | 7x7, synonym clues |
+| Waffle | Waffle | common words, par 6 swaps | common words, par 10 | wider word list, par 10, fewer green to start |
 
 Ladder's top and bottom words join into a compound word (FIRE + WORK). Hive is solved when you find a pangram.
 

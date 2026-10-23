@@ -17,6 +17,7 @@ import { generateLetterbox, letterboxError } from '../src/gen/letterbox.js';
 import { generateGroups, initCategories } from '../src/gen/groups.js';
 import { generateThreads } from '../src/gen/threads.js';
 import { generateMidi } from '../src/gen/mini.js';
+import { generateWaffle, minSwaps, colorsFor, LINES, CELLS } from '../src/gen/waffle.js';
 
 initWords(JSON.parse(fs.readFileSync('src/data/words.json')), JSON.parse(fs.readFileSync('src/data/clues.json')));
 initCompounds(JSON.parse(fs.readFileSync('src/data/compounds.json')));
@@ -122,6 +123,16 @@ run('tiles', {
       for (const a of live) { for (const b of live) if (a !== b) { const sh = shared(t[a], t[b]); if (sh.length) { sh.forEach((k) => { t[a][k] = null; t[b][k] = null; }); moved = true; break; } } if (moved) break; }
       if (!moved) { assert(false, `tiles stuck ${s}`); break; }
     }
+  },
+});
+run('waffle', {
+  gen: generateWaffle,
+  check: (p, d, s) => {
+    const words = LINES.map((l) => l.map((i) => p.sol[i]).join(''));
+    assert(words.every((w) => isWord(w)) && new Set(words).size === 6, `waffle words ${s}`);
+    assert([...p.start].sort().join('') === [...p.sol].sort().join(''), `waffle letters ${s}`);
+    assert(minSwaps(p.start, p.sol) === p.par && p.par === (d === 'easy' ? 6 : 10), `waffle par ${p.par} ${s}`);
+    assert(!colorsFor(p.start, p.sol).every((c, i) => !CELLS.includes(i) || c === 'hit'), `waffle starts solved ${s}`);
   },
 });
 run('letbox', {
