@@ -1,6 +1,6 @@
 # Daily Puzzles
 
-Twenty daily puzzle games in one web app. Every puzzle is generated in the browser from the date, so there is a fresh set each day with no server, no database and no scheduled job.
+Twenty-one daily puzzle games in one web app. Every puzzle is generated in the browser from the date, so there is a fresh set each day with no server, no database and no scheduled job.
 
 | Game | Plays like | Easy | Medium | Hard |
 |---|---|---|---|---|
@@ -11,6 +11,7 @@ Twenty daily puzzle games in one web app. Every puzzle is generated in the brows
 | Werdle | Wordle | 4 letters | 5 letters | 5 letters, less common, hints must be reused |
 | The Mino | The Mini | 4x4 | 5x5 | 5x5, rarer words, synonym clues |
 | Spilling Bee | Spelling Bee | common words only | everyday dictionary | big dictionary |
+| Pile-Up Pokar | Pile-Up Poker | 4x4, next deal shown | 4x4, 36-card deck | 5x5 Pro: full deck plus joker, 5-card hands |
 | Trivia | daily trivia | easy questions | medium | hard |
 | Sudoku | Sudoku | 40 givens | 32 givens | about 26 givens, still one answer |
 | Pops | Pips | 5 dominoes | 7 dominoes, more inequalities | 9 dominoes, more open squares |

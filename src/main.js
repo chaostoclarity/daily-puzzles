@@ -30,6 +30,7 @@ import typeshift from './games/typeshift.js';
 import seats from './games/seats.js';
 import wordscapes from './games/wordscapes.js';
 import knotwords from './games/knotwords.js';
+import pileup from './games/pileup.js';
 import { initCategories } from './gen/groups.js';
 import categoriesJson from './data/categories.json';
 
@@ -42,6 +43,7 @@ const SECTIONS = [
   ['Logic', [path, crowns, sudoku, dominoes, tiles, seats]],
   ['Words', [guess, waffle, typeshift, wordscapes, hive, groups, threads, weave, ladder, letterbox]],
   ['Crosswords', [mini, midi, knotwords]],
+  ['Cards', [pileup]],
   ['Knowledge', [trivia]],
 ];
 const GAMES = SECTIONS.flatMap(([, list]) => list);

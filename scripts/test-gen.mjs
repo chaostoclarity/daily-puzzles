@@ -17,6 +17,7 @@ import { generateLetterbox, letterboxError } from '../src/gen/letterbox.js';
 import { generateGroups, initCategories } from '../src/gen/groups.js';
 import { generateThreads } from '../src/gen/threads.js';
 import { generateMidi } from '../src/gen/mini.js';
+import { generatePileup, handOf, scoreBoard } from '../src/gen/pileup.js';
 import { generateKnotwords, countSolutions as kwCount } from '../src/gen/knotwords.js';
 import { generateWordscapes, fits as wsFits } from '../src/gen/wordscapes.js';
 import { generateSeats, holds as seatHolds } from '../src/gen/seats.js';
@@ -129,6 +130,26 @@ run('tiles', {
     }
   },
 });
+run('pileup', {
+  gen: generatePileup,
+  check: (p, d, s) => {
+    const all = p.deals.flat();
+    assert(new Set(all).size === all.length && p.deals.length === p.n && p.deals.every((x) => x.length === p.n + 1), `pileup deals ${s}`);
+  },
+});
+{
+  // hand values and multipliers from Puzzmo's documented scoring
+  const eq = (a, b, m) => assert(a === b, `pileup ${m}: ${a} vs ${b}`);
+  eq(handOf(['As', 'Ad', '7c', '9h']), 'pair', 'pair'); eq(handOf(['As', 'Ad', '7c', '7h']), 'twopair', 'two pair');
+  eq(handOf(['As', 'Ks', '7s', '9s']), 'flush', 'flush'); eq(handOf(['Js', 'Qd', 'Kc', 'Ah']), 'straight', 'straight');
+  eq(handOf(['9h', 'Th', 'Jh', '8h']), 'straightflush', 'straight flush'); eq(handOf(['As', 'Ad', 'Ac', '9h']), 'trips', 'trips');
+  eq(handOf(['Ks', 'Ah', '6c', '7d']), null, 'no wrap'); eq(handOf(['W*', 'Ad', 'Ac', 'Ah']), 'quads', 'joker');
+  eq(handOf(['As', 'Ad', 'Ac', 'Kh', 'Kd']), 'fullhouse', 'full house'); eq(handOf(['Ah', '2c', '3d', '4s', '5h']), 'straight', 'ace low');
+  // a board where all 10 lines score pairs: 5 each, corners x2, discard x3, multiplier 6
+  const g = ['6s','6h','7s','7h', '6d','6c','7d','7c', '8s','8h','9s','9h', '8d','8c','9d','9c'];
+  const sc = scoreBoard(4, g, ['Ts','Th','Js','Jh']);
+  eq(sc.handMult, 6, 'multiplier');
+}
 run('knotwords', {
   gen: generateKnotwords,
   check: (p, d, s) => {
