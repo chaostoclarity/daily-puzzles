@@ -23,13 +23,17 @@ export default {
     let open = []; // flipped this turn (max 2)
     let timer = null;
 
-    const grid = h('div', { class: 'mk-grid', style: { '--n': n } });
+    // boxes laid out in a grid, each holding equal squares, so every square is the same size
+    const grid = h('div', { class: 'mk-grid', style: { '--bx': n / p.bc, '--by': n / p.br } });
+    const boxes = Array.from({ length: n }, () => h('div', { class: 'mk-box', style: { '--bc': p.bc, '--br': p.br } }));
+    boxes.forEach((b) => grid.append(b));
     const els = [];
     for (let i = 0; i < n * n; i++) {
       const r = Math.floor(i / n), c = i % n;
-      const cls = ['mk-cell', (c + 1) % p.bc === 0 && c < n - 1 ? 'br' : '', (r + 1) % p.br === 0 && r < n - 1 ? 'bb' : ''].join(' ');
-      const el = h('button', { class: cls, type: 'button', onClick: () => flip(i) });
-      els.push(el); grid.append(el);
+      const box = Math.floor(r / p.br) * (n / p.bc) + Math.floor(c / p.bc);
+      const el = h('button', { class: 'mk-cell', type: 'button', 'data-i': i, onClick: () => flip(i) });
+      els.push(el);
+      boxes[box].append(el); // cells arrive in reading order, so each box fills row by row
     }
     const meter = h('p', { class: 'hint-line', 'aria-live': 'polite' });
     root.append(h('div', { class: 'board mk-board' }, grid), meter);

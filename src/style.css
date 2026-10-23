@@ -774,13 +774,13 @@ body::before { content: ''; position: fixed; inset: 0 0 auto; height: env(safe-a
 
 /* ---------- memaku ---------- */
 .mk-board { width: min(100%, 420px); }
-.mk-grid { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 3px; user-select: none; }
+.mk-grid { display: grid; grid-template-columns: repeat(var(--bx), minmax(0, 1fr)); gap: 6px; user-select: none; }
+.mk-box { display: grid; grid-template-columns: repeat(var(--bc), minmax(0, 1fr)); gap: 3px; }
 .mk-cell {
   aspect-ratio: 1; border: 0; border-radius: 6px; padding: 0; cursor: pointer;
   background: color-mix(in srgb, var(--g) 70%, var(--surface)); color: var(--ink);
   font-family: var(--f-display); font-weight: 700; font-size: clamp(1rem, 5.4vw, 1.6rem); transition: background 0.15s ease;
 }
-.mk-cell.br { margin-right: 4px; } .mk-cell.bb { margin-bottom: 4px; }
 .mk-cell.up { background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); cursor: default; }
 .mk-cell.given { color: var(--muted); }
 .mk-cell.peek { background: color-mix(in srgb, var(--mark) 55%, var(--surface)); }
