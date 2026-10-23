@@ -34,6 +34,7 @@ import pileup from './games/pileup.js';
 import wordbind from './games/wordbind.js';
 import flipart from './games/flipart.js';
 import bongo from './games/bongo.js';
+import memoku from './games/memoku.js';
 import { initCategories } from './gen/groups.js';
 import categoriesJson from './data/categories.json';
 
@@ -43,7 +44,7 @@ initCompounds(compoundsJson);
 initCategories(categoriesJson);
 
 const SECTIONS = [
-  ['Logic', [path, crowns, sudoku, dominoes, tiles, flipart, seats]],
+  ['Logic', [path, crowns, sudoku, memoku, dominoes, tiles, flipart, seats]],
   ['Words', [guess, waffle, typeshift, wordscapes, wordbind, bongo, hive, groups, threads, weave, ladder, letterbox]],
   ['Crosswords', [mini, midi, knotwords]],
   ['Cards', [pileup]],

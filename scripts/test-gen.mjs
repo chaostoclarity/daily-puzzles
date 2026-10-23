@@ -17,6 +17,7 @@ import { generateLetterbox, letterboxError } from '../src/gen/letterbox.js';
 import { generateGroups, initCategories } from '../src/gen/groups.js';
 import { generateThreads } from '../src/gen/threads.js';
 import { generateMidi } from '../src/gen/mini.js';
+import { generateMemoku } from '../src/gen/memoku.js';
 import { generateBongo, scoreBoard as bongoScore } from '../src/gen/bongo.js';
 import { generateFlipart, solvedBy as faSolved } from '../src/gen/flipart.js';
 import { generateWordbind, bindable } from '../src/gen/wordbind.js';
@@ -131,6 +132,15 @@ run('tiles', {
       for (const a of live) { for (const b of live) if (a !== b) { const sh = shared(t[a], t[b]); if (sh.length) { sh.forEach((k) => { t[a][k] = null; t[b][k] = null; }); moved = true; break; } } if (moved) break; }
       if (!moved) { assert(false, `tiles stuck ${s}`); break; }
     }
+  },
+});
+run('memoku', {
+  gen: generateMemoku,
+  check: (p, d, s) => {
+    const n = p.n;
+    for (let r = 0; r < n; r++) assert(new Set(p.grid.slice(r * n, r * n + n)).size === n, `memoku row ${s}`);
+    for (let c = 0; c < n; c++) assert(new Set(p.grid.filter((_, i) => i % n === c)).size === n, `memoku col ${s}`);
+    for (let v = 1; v <= n; v++) assert(p.grid.filter((x, i) => x === v && !p.shown[i]).length % 2 === 0, `memoku pairs ${s}`);
   },
 });
 run('bongo', {

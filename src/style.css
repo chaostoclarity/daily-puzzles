@@ -38,6 +38,7 @@
   --g-wordbind: #b2532f;
   --g-flipart: #c0392b;
   --g-bongo: #8a6d1f;
+  --g-memoku: #1f7a8c;
   --g-groups: #6a4fc0;
   --g-threads: #1f7a99;
   --g-midi: #234a8f;
@@ -56,7 +57,7 @@
     --paper: #11151d; --grid: #181e29; --surface: #1a202c; --ink: #e8ecf4; --muted: #9aa3b5; --line: #2f3747; --soft: #232a38;
     --mark: #e8b71a; --hit: #3f9a5f; --near: #b58c1c; --miss: #3d4556; --bad: #ef6a5f; --on-color: #ffffff; --block: #06080d;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 18px rgb(0 0 0 / 0.25);
-    --g-path: #34b3ac; --g-crowns: #a984df; --g-weave: #7cbf5b; --g-ladder: #ec8a3e; --g-guess: #4fbd7b; --g-mini: #6b94e3; --g-hive: #e2ad2c; --g-trivia: #ec6b62; --g-sudoku: #7ea3d6; --g-dominoes: #d29a5e; --g-tiles: #e07fb0; --g-letterbox: #f08458; --g-groups: #a68cf0; --g-threads: #4fb6d8; --g-midi: #6f97e0; --g-waffle: #dcae52; --g-typeshift: #5fb7c6; --g-seats: #e07fa3; --g-wordscapes: #7aa6e6; --g-knotwords: #a99bf0; --g-pileup: #5cc28a; --g-wordbind: #ec8a62; --g-flipart: #ef7a6c; --g-bongo: #d9b55a; --lv0: #8f7a1e; --lv1: #4f7a3a; --lv2: #3b5c8f; --lv3: #6a4c8c;
+    --g-path: #34b3ac; --g-crowns: #a984df; --g-weave: #7cbf5b; --g-ladder: #ec8a3e; --g-guess: #4fbd7b; --g-mini: #6b94e3; --g-hive: #e2ad2c; --g-trivia: #ec6b62; --g-sudoku: #7ea3d6; --g-dominoes: #d29a5e; --g-tiles: #e07fb0; --g-letterbox: #f08458; --g-groups: #a68cf0; --g-threads: #4fb6d8; --g-midi: #6f97e0; --g-waffle: #dcae52; --g-typeshift: #5fb7c6; --g-seats: #e07fa3; --g-wordscapes: #7aa6e6; --g-knotwords: #a99bf0; --g-pileup: #5cc28a; --g-wordbind: #ec8a62; --g-flipart: #ef7a6c; --g-bongo: #d9b55a; --g-memoku: #57b8c9; --lv0: #8f7a1e; --lv1: #4f7a3a; --lv2: #3b5c8f; --lv3: #6a4c8c;
     --r0: #74343f; --r1: #2c5088; --r2: #2f6542; --r3: #6f5c14; --r4: #553d82; --r5: #1c625e; --r6: #84481c; --r7: #4a5262; --r8: #712b62;
     --w0: #2f5a3d; --w1: #2f4670; --w2: #5f4c19; --w3: #523865; --w4: #66382f; --w5: #235654; --w6: #4d5222; --w7: #5c2f48;
     color-scheme: dark;
@@ -66,7 +67,7 @@
   --paper: #11151d; --grid: #181e29; --surface: #1a202c; --ink: #e8ecf4; --muted: #9aa3b5; --line: #2f3747; --soft: #232a38;
   --mark: #e8b71a; --hit: #3f9a5f; --near: #b58c1c; --miss: #3d4556; --bad: #ef6a5f; --on-color: #ffffff; --block: #06080d;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 18px rgb(0 0 0 / 0.25);
-  --g-path: #34b3ac; --g-crowns: #a984df; --g-weave: #7cbf5b; --g-ladder: #ec8a3e; --g-guess: #4fbd7b; --g-mini: #6b94e3; --g-hive: #e2ad2c; --g-trivia: #ec6b62; --g-sudoku: #7ea3d6; --g-dominoes: #d29a5e; --g-tiles: #e07fb0; --g-letterbox: #f08458; --g-groups: #a68cf0; --g-threads: #4fb6d8; --g-midi: #6f97e0; --g-waffle: #dcae52; --g-typeshift: #5fb7c6; --g-seats: #e07fa3; --g-wordscapes: #7aa6e6; --g-knotwords: #a99bf0; --g-pileup: #5cc28a; --g-wordbind: #ec8a62; --g-flipart: #ef7a6c; --g-bongo: #d9b55a; --lv0: #8f7a1e; --lv1: #4f7a3a; --lv2: #3b5c8f; --lv3: #6a4c8c;
+  --g-path: #34b3ac; --g-crowns: #a984df; --g-weave: #7cbf5b; --g-ladder: #ec8a3e; --g-guess: #4fbd7b; --g-mini: #6b94e3; --g-hive: #e2ad2c; --g-trivia: #ec6b62; --g-sudoku: #7ea3d6; --g-dominoes: #d29a5e; --g-tiles: #e07fb0; --g-letterbox: #f08458; --g-groups: #a68cf0; --g-threads: #4fb6d8; --g-midi: #6f97e0; --g-waffle: #dcae52; --g-typeshift: #5fb7c6; --g-seats: #e07fa3; --g-wordscapes: #7aa6e6; --g-knotwords: #a99bf0; --g-pileup: #5cc28a; --g-wordbind: #ec8a62; --g-flipart: #ef7a6c; --g-bongo: #d9b55a; --g-memoku: #57b8c9; --lv0: #8f7a1e; --lv1: #4f7a3a; --lv2: #3b5c8f; --lv3: #6a4c8c;
   --r0: #74343f; --r1: #2c5088; --r2: #2f6542; --r3: #6f5c14; --r4: #553d82; --r5: #1c625e; --r6: #84481c; --r7: #4a5262; --r8: #712b62;
   --w0: #2f5a3d; --w1: #2f4670; --w2: #5f4c19; --w3: #523865; --w4: #66382f; --w5: #235654; --w6: #4d5222; --w7: #5c2f48;
   color-scheme: dark;
@@ -770,3 +771,17 @@ body::before { content: ''; position: fixed; inset: 0 0 auto; height: env(safe-a
   display: grid; place-items: center; box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
 }
 .bg-tile.sel { transform: translateY(-4px); box-shadow: 0 0 0 3px var(--g); }
+
+/* ---------- memaku ---------- */
+.mk-board { width: min(100%, 420px); }
+.mk-grid { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 3px; user-select: none; }
+.mk-cell {
+  aspect-ratio: 1; border: 0; border-radius: 6px; padding: 0; cursor: pointer;
+  background: color-mix(in srgb, var(--g) 70%, var(--surface)); color: var(--ink);
+  font-family: var(--f-display); font-weight: 700; font-size: clamp(1rem, 5.4vw, 1.6rem); transition: background 0.15s ease;
+}
+.mk-cell.br { margin-right: 4px; } .mk-cell.bb { margin-bottom: 4px; }
+.mk-cell.up { background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); cursor: default; }
+.mk-cell.given { color: var(--muted); }
+.mk-cell.peek { background: color-mix(in srgb, var(--mark) 55%, var(--surface)); }
+.mk-cell.miss { background: color-mix(in srgb, var(--bad) 35%, var(--surface)); }

@@ -110,6 +110,14 @@ export default {
           if (!hintWord) return false;
         }
         hintShown++;
+        if (hintShown >= hintWord.length) {
+          // the last letter gives the word away, so it counts
+          const w = hintWord;
+          found.push(w); hintWord = null; hintShown = 0;
+          if (!done && goalsMet()) { done = true; render(); ctx.solved(`${found.length} words`); return `Found ${w.toUpperCase()}`; }
+          render();
+          return `Found ${w.toUpperCase()}`;
+        }
         render();
         return `${hintWord.length}-letter word: ${hintWord.slice(0, hintShown).toUpperCase()}…`;
       },
