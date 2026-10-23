@@ -163,3 +163,6 @@ function build(rng, s, stepBudget) {
   }
   throw new Error('mini generation failed');
 }
+
+/** Shared with Knatwords, which fills the same templates and hides the clues. */
+export { TEMPLATES, fill as fillTemplate, slotsOf };

@@ -17,6 +17,7 @@ import { generateLetterbox, letterboxError } from '../src/gen/letterbox.js';
 import { generateGroups, initCategories } from '../src/gen/groups.js';
 import { generateThreads } from '../src/gen/threads.js';
 import { generateMidi } from '../src/gen/mini.js';
+import { generateKnotwords, countSolutions as kwCount } from '../src/gen/knotwords.js';
 import { generateWordscapes, fits as wsFits } from '../src/gen/wordscapes.js';
 import { generateSeats, holds as seatHolds } from '../src/gen/seats.js';
 import { generateTypeshift, wordsFrom, minCover } from '../src/gen/typeshift.js';
@@ -125,6 +126,18 @@ run('tiles', {
       let moved = false;
       for (const a of live) { for (const b of live) if (a !== b) { const sh = shared(t[a], t[b]); if (sh.length) { sh.forEach((k) => { t[a][k] = null; t[b][k] = null; }); moved = true; break; } } if (moved) break; }
       if (!moved) { assert(false, `tiles stuck ${s}`); break; }
+    }
+  },
+});
+run('knotwords', {
+  gen: generateKnotwords,
+  check: (p, d, s) => {
+    for (const w of p.words) assert(isWord(w.cells.map((c) => p.solution[c]).join(''), 50), `knotwords word ${s}`);
+    const slots = p.words.map((w) => ({ cells: w.cells }));
+    assert(kwCount(p.n, p.open, p.regionOf, p.regions, slots) === 1, `knotwords not unique ${s}`);
+    for (let r = 0; r < p.regions.length; r++) {
+      const got = p.solution.filter((_, i) => p.regionOf[i] === r).sort().join('');
+      assert(got === p.regions[r].join(''), `knotwords region letters ${s}`);
     }
   },
 });

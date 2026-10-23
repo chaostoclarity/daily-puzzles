@@ -17,6 +17,7 @@ export const ICONS = {
   typeshift: svg('<path d="M3.5 12h17" stroke-opacity=".45"/><rect x="4" y="4" width="4" height="10" rx="1.2"/><rect x="10" y="8" width="4" height="12" rx="1.2"/><rect x="16" y="6" width="4" height="9" rx="1.2"/>'),
   seats: svg('<path d="M4 14v5M20 14v5M4 14h16"/><circle cx="7" cy="8" r="2"/><circle cx="12" cy="8" r="2" fill="currentColor"/><circle cx="17" cy="8" r="2"/>'),
   wordscapes: svg('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="6.5" r="1.3" fill="currentColor"/><circle cx="17" cy="14.5" r="1.3" fill="currentColor"/><circle cx="7" cy="14.5" r="1.3" fill="currentColor"/><path d="M12 6.5 17 14.5 7 14.5"/>'),
+  knotwords: svg('<rect x="3.5" y="3.5" width="17" height="17" rx="1.5"/><path d="M3.5 12h8.5V3.5M12 12v8.5M12 16h8.5"/>'),
   letterbox: svg('<rect x="5" y="5" width="14" height="14"/><path d="M9 5l6 14M5 10l14 4"/>'),
   groups: svg('<rect x="3.5" y="3.5" width="7.5" height="4.5" rx="1"/><rect x="13" y="3.5" width="7.5" height="4.5" rx="1"/><rect x="3.5" y="10" width="17" height="4.5" rx="1" fill="currentColor" fill-opacity=".35"/><rect x="3.5" y="16.5" width="7.5" height="4.5" rx="1"/><rect x="13" y="16.5" width="7.5" height="4.5" rx="1"/>'),
   threads: svg('<circle cx="5" cy="6" r="1.6" fill="currentColor"/><circle cx="12" cy="6" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="18" r="1.6" fill="currentColor"/><circle cx="5" cy="18" r="1.6" fill="currentColor"/><path d="M5 6h7l7 6-7 6H5"/>'),
