@@ -46,7 +46,10 @@ export default {
     const dealBtn = h('button', { class: 'btn primary', type: 'button', onClick: deal }, 'Deal');
     const total = h('p', { class: 'pk-total', 'aria-live': 'polite' });
     const breakdown = h('div', { class: 'pk-lines' });
-    root.append(total, h('div', { class: 'board pk-board' }, gridEl), h('p', { class: 'pk-label' }, 'Discard pile ×3'), discardEl, handEl, h('div', { class: 'row-actions' }, dealBtn), nextEl, breakdown);
+    // one card width for grid, discard pile and hand, sized so all three fit on one screen
+    const wrap = h('div', { class: 'pk-wrap', style: { '--n': n } },
+      h('div', { class: 'pk-board' }, gridEl), h('p', { class: 'pk-label' }, 'Discard pile ×3'), discardEl, handEl);
+    root.append(total, wrap, nextEl, breakdown);
 
     function pick(i) { if (done) return; sel = sel === i ? null : i; render(); }
 
@@ -91,10 +94,11 @@ export default {
       const s = scoreBoard(n, grid, discards);
       put(gridEl, grid.map((c, i) => cardEl(c, (corners.has(i) ? 'corner ' : '') + (fresh.includes(i) ? 'fresh' : ''), { role: 'button', tabindex: '0', onClick: () => tapCell(i), 'aria-label': c ? `${c}` : `Empty${corners.has(i) ? ' corner' : ''}` })));
       put(discardEl, Array.from({ length: n }, (_, k) => cardEl(discards[k] || '', discards[k] && discards[k] === freshDiscard && k === discards.length - 1 ? 'fresh' : '', { role: 'button', tabindex: '0', onClick: tapDiscard })));
-      put(handEl, hand.map((c, i) => cardEl(c, sel === i ? 'sel' : '', { role: 'button', tabindex: '0', onClick: () => pick(i) })));
-      dealBtn.hidden = done;
-      dealBtn.disabled = hand.length > 0;
+      // once every card is placed, Deal takes the hand's spot so it's right under the board
       dealBtn.textContent = turn === p.deals.length - 1 ? 'Finish' : 'Deal';
+      put(handEl, hand.length
+        ? hand.map((c, i) => cardEl(c, sel === i ? 'sel' : '', { role: 'button', tabindex: '0', onClick: () => pick(i) }))
+        : done ? null : dealBtn);
       put(nextEl, p.preview && !done && p.deals[turn + 1] ? [h('span', {}, 'Next deal'), ...p.deals[turn + 1].map((c) => cardEl(c, 'mini'))] : null);
       put(total, h('b', {}, money(s.total)), h('span', {}, ` · ×${s.handMult} for ${s.lines.filter((l) => l.base).length} hands · deal ${Math.min(turn + 1, p.deals.length)} of ${p.deals.length}`));
       const name = (l) => (l.kind === 'row' ? `Row ${l.idx + 1}` : l.kind === 'col' ? `Column ${l.idx + 1}` : l.kind === 'corners' ? 'Corners ×2' : 'Discards ×3');
