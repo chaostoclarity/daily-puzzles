@@ -1,3 +1,4 @@
+import './fonts.css';
 import './style.css';
 import wordsJson from './data/words.json';
 import cluesJson from './data/clues.json';
@@ -305,3 +306,9 @@ document.body.append(toastEl);
 route();
 // as a Claude artifact, progress also lives in the viewer's private cloud store
 connectCloud(today()).then((changed) => { if (changed && !document.querySelector('.sheet-wrap')) route(); });
+
+// Offline: on the hosted site, save the app on the device. Skipped inside the Claude
+// artifact and when opened as a local file, where service workers aren't available.
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost') && !/claude|anthropic/.test(location.hostname)) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js').catch(() => {}); });
+}

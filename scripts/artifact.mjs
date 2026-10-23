@@ -4,7 +4,10 @@ const html = fs.readFileSync('dist/index.html', 'utf8');
 const head = html.match(/<head>([\s\S]*?)<\/head>/)[1]
   .replace(/<meta charset[^>]*>/, '')
   .replace(/<meta name="viewport"[^>]*>/, '')
-  .replace(/<meta name="theme-color"[^>]*>/, '');
+  .replace(/<meta name="theme-color"[^>]*>/, '')
+  // home-screen app tags only apply to the hosted site
+  .replace(/<link rel="(manifest|apple-touch-icon)"[^>]*>/g, '')
+  .replace(/<meta name="(apple-mobile-web-app-[a-z-]+|mobile-web-app-capable)"[^>]*>/g, '');
 const body = html.match(/<body>([\s\S]*?)<\/body>/)[1];
 // title first so it sits in the first 8KB
 const title = head.match(/<title>[\s\S]*?<\/title>/)[0];

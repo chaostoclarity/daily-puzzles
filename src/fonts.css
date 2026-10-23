@@ -1,0 +1,9 @@
+/* Fonts are bundled into the page so it looks right offline (from @fontsource, SIL OFL). */
+@font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 400; font-display: swap;
+  src: url('@fontsource/atkinson-hyperlegible/files/atkinson-hyperlegible-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Atkinson Hyperlegible'; font-style: normal; font-weight: 700; font-display: swap;
+  src: url('@fontsource/atkinson-hyperlegible/files/atkinson-hyperlegible-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Zilla Slab'; font-style: normal; font-weight: 600; font-display: swap;
+  src: url('@fontsource/zilla-slab/files/zilla-slab-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'Zilla Slab'; font-style: normal; font-weight: 700; font-display: swap;
+  src: url('@fontsource/zilla-slab/files/zilla-slab-latin-700-normal.woff2') format('woff2'); }

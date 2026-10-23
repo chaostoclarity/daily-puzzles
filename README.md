@@ -40,6 +40,10 @@ The seed is `date | game | difficulty | extra-round number`. The same seed alway
 
 Games that draw from a fixed bank (Trivia questions, Groups and Threads categories, Ladder compounds, Word Guess answers) deal from one shuffled deck per day, so pressing **New puzzle** moves on to items you haven't seen that day instead of drawing at random again. When a generator changes, bump the game's `version` so saved progress from the old board isn't loaded onto the new one.
 
+## Offline
+
+The hosted site is an installable web app. Open it once online, then use Share > Add to Home Screen (iPhone) or Install app (Android, Chrome). `public/sw.js` keeps a copy on the device and refreshes it in the background when online; fonts are bundled from @fontsource. Puzzles are generated on the device, so new days work offline too.
+
 ## Run it
 
 ```bash
