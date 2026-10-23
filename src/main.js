@@ -27,6 +27,7 @@ import threads from './games/threads.js';
 import midi from './games/midi.js';
 import waffle from './games/waffle.js';
 import typeshift from './games/typeshift.js';
+import seats from './games/seats.js';
 import { initCategories } from './gen/groups.js';
 import categoriesJson from './data/categories.json';
 
@@ -36,7 +37,7 @@ initCompounds(compoundsJson);
 initCategories(categoriesJson);
 
 const SECTIONS = [
-  ['Logic', [path, crowns, sudoku, dominoes, tiles]],
+  ['Logic', [path, crowns, sudoku, dominoes, tiles, seats]],
   ['Words', [guess, waffle, typeshift, hive, groups, threads, weave, ladder, letterbox]],
   ['Crosswords', [mini, midi]],
   ['Knowledge', [trivia]],

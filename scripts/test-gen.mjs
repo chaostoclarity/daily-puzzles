@@ -17,6 +17,7 @@ import { generateLetterbox, letterboxError } from '../src/gen/letterbox.js';
 import { generateGroups, initCategories } from '../src/gen/groups.js';
 import { generateThreads } from '../src/gen/threads.js';
 import { generateMidi } from '../src/gen/mini.js';
+import { generateSeats, holds as seatHolds } from '../src/gen/seats.js';
 import { generateTypeshift, wordsFrom, minCover } from '../src/gen/typeshift.js';
 import { generateWaffle, minSwaps, colorsFor, LINES, CELLS } from '../src/gen/waffle.js';
 
@@ -124,6 +125,20 @@ run('tiles', {
       for (const a of live) { for (const b of live) if (a !== b) { const sh = shared(t[a], t[b]); if (sh.length) { sh.forEach((k) => { t[a][k] = null; t[b][k] = null; }); moved = true; break; } } if (moved) break; }
       if (!moved) { assert(false, `tiles stuck ${s}`); break; }
     }
+  },
+});
+run('seats', {
+  gen: generateSeats,
+  check: (p, d, s) => {
+    assert(p.clues.every((c) => seatHolds(c, p.seat, p.n)), `seats clues false ${s}`);
+    // exactly one seating fits
+    let fits = 0;
+    const perm = (k, used, seat) => {
+      if (k === p.n) { if (p.clues.every((c) => seatHolds(c, seat, p.n))) fits++; return; }
+      for (let x = 0; x < p.n; x++) if (!used[x]) { used[x] = 1; seat[k] = x; perm(k + 1, used, seat); used[x] = 0; }
+    };
+    perm(0, [], {});
+    assert(fits === 1, `seats has ${fits} answers ${s}`);
   },
 });
 run('typeshift', {
