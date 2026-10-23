@@ -3,9 +3,8 @@ import { generateMini } from '../gen/mini.js';
 
 export default {
   id: 'mini',
-  name: 'Mini Crossword',
+  name: 'The Mino',
   tagline: 'A small grid with dictionary clues',
-  inspired: 'The Mini',
   generate: generateMini,
   rules: [
     'Fill the grid so every across and down entry answers its clue.',

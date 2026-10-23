@@ -30,9 +30,8 @@ const describe = (t) => Object.entries(t).filter(([, v]) => v).map(([k, v]) => `
 
 export default {
   id: 'tiles',
-  name: 'Tiles',
+  name: 'Toles',
   tagline: 'Match designs to clear the board',
-  inspired: 'Tiles',
   generate: generateTiles,
   rules: [
     'Each tile stacks a few designs: a background color, a shape, and on harder levels a small pattern.',

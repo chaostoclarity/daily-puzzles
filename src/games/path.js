@@ -3,9 +3,8 @@ import { generatePath, checkPath, gridNeighbors } from '../gen/path.js';
 
 export default {
   id: 'path',
-  name: 'Trail',
+  name: 'Zap',
   tagline: 'Draw one line through every square',
-  inspired: 'Zip',
   generate: generatePath,
   rules: [
     'Start on 1 and draw a single line through every square on the board.',

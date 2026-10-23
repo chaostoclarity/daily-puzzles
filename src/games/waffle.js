@@ -3,9 +3,8 @@ import { generateWaffle, colorsFor, minSwaps, CELLS } from '../gen/waffle.js';
 
 export default {
   id: 'waffle',
-  name: 'Waffle',
+  name: 'Woffle',
   tagline: 'Swap letters until six words line up',
-  inspired: 'Waffle',
   version: 1,
   generate: generateWaffle,
   rules: [

@@ -4,9 +4,8 @@ import { generateLadder, oneApart } from '../gen/ladder.js';
 export default {
   id: 'ladder',
   version: 2, // bump when the generator changes, so old saves don't load onto a new board
-  name: 'Ladder',
+  name: 'Crissclimb',
   tagline: 'Climb a chain of one-letter changes',
-  inspired: 'Crossclimb',
   generate: generateLadder,
   rules: [
     'Each rung is a word that differs from the rung next to it by exactly one letter.',

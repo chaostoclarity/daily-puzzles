@@ -11,9 +11,8 @@ const SIDE_POS = [
 
 export default {
   id: 'letterbox',
-  name: 'Letter Square',
+  name: 'Litter Boxed',
   tagline: 'Chain words around a square of letters',
-  inspired: 'Letter Boxed',
   generate: generateLetterbox,
   rules: [
     'Make words from the twelve letters around the square. Each word needs at least three letters.',

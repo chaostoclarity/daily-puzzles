@@ -6,9 +6,8 @@ const pips = (v) => h('span', { class: 'pips', 'aria-label': `${v}` }, Array.fro
 
 export default {
   id: 'dominoes',
-  name: 'Dominoes',
+  name: 'Pops',
   tagline: 'Place every domino to meet each region’s rule',
-  inspired: 'Pips',
   generate: generateDominoes,
   rules: [
     'Place every domino from the tray onto the board so it covers two squares side by side.',

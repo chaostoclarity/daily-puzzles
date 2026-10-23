@@ -4,9 +4,8 @@ import { isWord } from '../lib/words.js';
 
 export default {
   id: 'weave',
-  name: 'Weave',
+  name: 'Wand',
   tagline: 'Split the grid into hidden words',
-  inspired: 'Wend',
   generate: generateWeave,
   rules: [
     'The grid hides several words, each a different length. Every letter belongs to exactly one of them. Dark squares are blocked.',

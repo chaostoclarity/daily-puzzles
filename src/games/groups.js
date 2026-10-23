@@ -6,9 +6,8 @@ const LEVEL_NAMES = ['Easiest', 'Easy', 'Tricky', 'Trickiest'];
 export default {
   id: 'groups',
   version: 2, // bump when the generator changes, so old saves don't load onto a new board
-  name: 'Groups',
+  name: 'Cannections',
   tagline: 'Sort sixteen words into four groups',
-  inspired: 'Connections',
   generate: generateGroups,
   rules: [
     'Find four groups of four words that share something.',

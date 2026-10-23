@@ -5,9 +5,8 @@ const CROWN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18h18l-1.
 
 export default {
   id: 'crowns',
-  name: 'Crowns',
+  name: 'Queins',
   tagline: 'One crown per row, column and color',
-  inspired: 'Queens',
   generate: generateCrowns,
   rules: [
     'Place one crown in every row, every column and every color region.',

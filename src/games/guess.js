@@ -7,9 +7,8 @@ const MARK = ['miss', 'near', 'hit'];
 export default {
   id: 'guess',
   version: 2, // bump when the generator changes, so old saves don't load onto a new board
-  name: 'Word Guess',
+  name: 'Werdle',
   tagline: 'Find the hidden word in six tries',
-  inspired: 'Wordle',
   generate: generateGuess,
   rules: [
     'Guess the hidden word. Each guess must be a real word.',

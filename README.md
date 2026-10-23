@@ -4,24 +4,24 @@ Sixteen daily puzzle games in one web app. Every puzzle is generated in the brow
 
 | Game | Plays like | Easy | Medium | Hard |
 |---|---|---|---|---|
-| Trail | Zip | 5x5, many numbers | 6x6, a few walls | 7x7, fewer numbers, more walls |
-| Crowns | Queens | 6x6 | 7x7 | 8x8, no conflict highlights |
-| Weave | Wend | 5x5, words of 3 to 6 letters | 6x6, 4 to 8 letters | 7x7, 4 to 9 letters |
-| Ladder | Crossclimb | 3 rungs in order | 5 rungs, scrambled | 6 rungs, scrambled, synonym clues |
-| Word Guess | Wordle | 4 letters | 5 letters | 5 letters, less common, hints must be reused |
-| Mini Crossword | The Mini | 4x4 | 5x5 | 5x5, rarer words, synonym clues |
-| Hive | Spelling Bee | common words only | everyday dictionary | big dictionary |
+| Zap | Zip | 5x5, many numbers | 6x6, a few walls | 7x7, fewer numbers, more walls |
+| Queins | Queens | 6x6 | 7x7 | 8x8, no conflict highlights |
+| Wand | Wend | 5x5, words of 3 to 6 letters | 6x6, 4 to 8 letters | 7x7, 4 to 9 letters |
+| Crissclimb | Crossclimb | 3 rungs in order | 5 rungs, scrambled | 6 rungs, scrambled, synonym clues |
+| Werdle | Wordle | 4 letters | 5 letters | 5 letters, less common, hints must be reused |
+| The Mino | The Mini | 4x4 | 5x5 | 5x5, rarer words, synonym clues |
+| Spilling Bee | Spelling Bee | common words only | everyday dictionary | big dictionary |
 | Trivia | daily trivia | easy questions | medium | hard |
 | Sudoku | Sudoku | 40 givens | 32 givens | about 26 givens, still one answer |
-| Dominoes | Pips | 5 dominoes | 7 dominoes, more inequalities | 9 dominoes, more open squares |
-| Tiles | Tiles | 4x4, two layers | 5x4, three layers | 6x5, three layers, more designs |
-| Letter Square | Letter Boxed | target 6 words | target 5 | target 4, rarer letters |
-| Groups | Connections | everyday categories | one FIRE ___ style group | rarer words, up to two pattern groups |
-| Threads | Strands | 5x6 grid | 6x7 | 6x8, wider word pool |
-| Midi Crossword | The Midi | 7x7 | 7x7 | 7x7, synonym clues |
-| Waffle | Waffle | common words, par 6 swaps | common words, par 10 | wider word list, par 10, fewer green to start |
+| Pops | Pips | 5 dominoes | 7 dominoes, more inequalities | 9 dominoes, more open squares |
+| Toles | Tiles | 4x4, two layers | 5x4, three layers | 6x5, three layers, more designs |
+| Litter Boxed | Letter Boxed | target 6 words | target 5 | target 4, rarer letters |
+| Cannections | Connections | everyday categories | one FIRE ___ style group | rarer words, up to two pattern groups |
+| Strends | Strands | 5x6 grid | 6x7 | 6x8, wider word pool |
+| The Mido | The Midi | 7x7 | 7x7 | 7x7, synonym clues |
+| Woffle | Waffle | common words, par 6 swaps | common words, par 10 | wider word list, par 10, fewer green to start |
 
-Ladder's top and bottom words join into a compound word (FIRE + WORK). Hive is solved when you find a pangram.
+Crissclimb's top and bottom words join into a compound word (FIRE + WORK). Spilling Bee is solved when you find a pangram.
 
 Each game has Easy, Medium and Hard, a **New puzzle** button for an extra round, **Show answer**, and saves progress in the browser.
 
@@ -60,4 +60,4 @@ Any static host works too: upload `dist/index.html`.
 
 Rebuild words and clues with `npm run data`. Trivia comes from `scripts/fetch-trivia.py`.
 
-The game names and designs are generic. They are not affiliated with LinkedIn or The New York Times.
+Game names are one-letter twists on the originals so they're easy to recognize, and the site asks search engines not to index it. They are not affiliated with LinkedIn or The New York Times.

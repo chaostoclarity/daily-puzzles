@@ -6,7 +6,6 @@ export default {
   version: 2, // bump when the generator changes, so old saves don't load onto a new board
   name: 'Trivia',
   tagline: 'Ten questions, a new round every day',
-  inspired: 'Daily trivia',
   generate: generateTrivia,
   rules: [
     'Answer ten multiple-choice questions. Tap an answer to lock it in.',

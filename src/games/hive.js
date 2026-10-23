@@ -3,9 +3,8 @@ import { generateHive, hivePoints, hiveIsPangram, hiveKnownWord, RANKS, rankFor 
 
 export default {
   id: 'hive',
-  name: 'Hive',
+  name: 'Spilling Bee',
   tagline: 'Make words from seven letters',
-  inspired: 'Spelling Bee',
   generate: generateHive,
   playsOn: true, // solved at the first pangram, but words, hints and answers keep going
   rules: [

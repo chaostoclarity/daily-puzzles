@@ -5,7 +5,6 @@ export default {
   id: 'sudoku',
   name: 'Sudoku',
   tagline: 'Every row, column and box holds 1 to 9',
-  inspired: 'Sudoku',
   generate: generateSudoku,
   rules: [
     'Fill the grid so every row, every column and every 3x3 box contains the numbers 1 to 9 once each.',
