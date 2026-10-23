@@ -17,6 +17,7 @@ import { generateLetterbox, letterboxError } from '../src/gen/letterbox.js';
 import { generateGroups, initCategories } from '../src/gen/groups.js';
 import { generateThreads } from '../src/gen/threads.js';
 import { generateMidi } from '../src/gen/mini.js';
+import { generateTypeshift, wordsFrom, minCover } from '../src/gen/typeshift.js';
 import { generateWaffle, minSwaps, colorsFor, LINES, CELLS } from '../src/gen/waffle.js';
 
 initWords(JSON.parse(fs.readFileSync('src/data/words.json')), JSON.parse(fs.readFileSync('src/data/clues.json')));
@@ -123,6 +124,16 @@ run('tiles', {
       for (const a of live) { for (const b of live) if (a !== b) { const sh = shared(t[a], t[b]); if (sh.length) { sh.forEach((k) => { t[a][k] = null; t[b][k] = null; }); moved = true; break; } } if (moved) break; }
       if (!moved) { assert(false, `tiles stuck ${s}`); break; }
     }
+  },
+});
+run('typeshift', {
+  gen: generateTypeshift,
+  check: (p, d, s) => {
+    for (const w of p.planted) assert([...w].every((ch, i) => p.cols[i].includes(ch)), `typeshift planted ${w} ${s}`);
+    const cells = new Set(p.cover.flatMap((w) => [...w].map((ch, i) => i + ':' + ch)));
+    assert(cells.size === p.cols.reduce((a, c) => a + c.length, 0), `typeshift cover ${s}`);
+    assert(p.cover.every((w) => isWord(w, 50)) && p.par === p.cover.length, `typeshift words ${s}`);
+    assert(p.cols.every((c) => new Set(c).size === c.length && c.length >= 2), `typeshift columns ${s}`);
   },
 });
 run('waffle', {
