@@ -1,6 +1,6 @@
 # Daily Puzzles
 
-Twenty-two daily puzzle games in one web app. Every puzzle is generated in the browser from the date, so there is a fresh set each day with no server, no database and no scheduled job.
+Twenty-three daily puzzle games in one web app. Every puzzle is generated in the browser from the date, so there is a fresh set each day with no server, no database and no scheduled job.
 
 | Game | Plays like | Easy | Medium | Hard |
 |---|---|---|---|---|
@@ -22,6 +22,7 @@ Twenty-two daily puzzle games in one web app. Every puzzle is generated in the b
 | Knatwords | Knotwords | 4x4, small regions | 5x5 | 5x5, bigger regions |
 | The Mido | The Midi | 7x7 | 7x7 | 7x7, synonym clues |
 | Typeshaft | Typeshift | 4 columns | 5 columns | 6 columns, wider word list |
+| Flipert | Flipart | 4x4 frame | 5x5 | 6x6, more pieces |
 | Where's My Seet | Where's My Seat? | 5 seats, one seat given | 6 seats | 7 seats, only relative clues |
 | Wordscopes | Wordscapes | 5-letter wheel | 6-letter wheel | 7-letter wheel, 4+ letter words |
 | Wordbund | Wordbind | 4+ letters, goals at 4 to 6 | 5+ letters, goals at 5 to 7 | longer phrase, goals at 6 to 8 |

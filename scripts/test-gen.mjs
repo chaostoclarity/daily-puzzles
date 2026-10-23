@@ -17,6 +17,7 @@ import { generateLetterbox, letterboxError } from '../src/gen/letterbox.js';
 import { generateGroups, initCategories } from '../src/gen/groups.js';
 import { generateThreads } from '../src/gen/threads.js';
 import { generateMidi } from '../src/gen/mini.js';
+import { generateFlipart, solvedBy as faSolved } from '../src/gen/flipart.js';
 import { generateWordbind, bindable } from '../src/gen/wordbind.js';
 import { generatePileup, handOf, scoreBoard } from '../src/gen/pileup.js';
 import { generateKnotwords, countSolutions as kwCount } from '../src/gen/knotwords.js';
@@ -129,6 +130,14 @@ run('tiles', {
       for (const a of live) { for (const b of live) if (a !== b) { const sh = shared(t[a], t[b]); if (sh.length) { sh.forEach((k) => { t[a][k] = null; t[b][k] = null; }); moved = true; break; } } if (moved) break; }
       if (!moved) { assert(false, `tiles stuck ${s}`); break; }
     }
+  },
+});
+run('flipart', {
+  gen: generateFlipart,
+  check: (p, d, s) => {
+    assert(faSolved(p, p.pieces.map(() => 0)), `flipart home turns don't solve ${s}`);
+    assert(!faSolved(p, p.start), `flipart starts solved ${s}`);
+    assert(p.pieces.reduce((a, pc) => a + pc.cells.length, 0) === p.w * p.h, `flipart area ${s}`);
   },
 });
 run('wordbind', {
