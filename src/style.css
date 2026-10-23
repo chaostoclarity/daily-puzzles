@@ -191,6 +191,23 @@ h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
 .crown-cell .xmark.auto { opacity: 0.45; }
 .crown-cell.bad { color: var(--bad); }
 .crown-cell.bad.crown { background-image: repeating-linear-gradient(45deg, transparent 0 6px, color-mix(in srgb, var(--bad) 22%, transparent) 6px 9px); }
+/* Crowns uses its own brighter palette with near-black lines and symbols, in light and dark mode alike */
+.crown-grid {
+  --cr0: #ff8a75; --cr1: #82b4ff; --cr2: #98dc6e; --cr3: #ffdc4f; --cr4: #bf9cf5;
+  --cr5: #52d4c3; --cr6: #ffae5c; --cr7: #c9cfdb; --cr8: #ff96cf;
+  --cr-ink: #14161c; --cr-bad: #c4141c;
+  border-color: var(--cr-ink);
+}
+.crown-grid .crown-cell { color: var(--cr-ink); border-right-color: rgb(0 0 0 / 0.22); border-bottom-color: rgb(0 0 0 / 0.22); }
+.crown-grid .crown-cell.edge-r { border-right-color: var(--cr-ink); }
+.crown-grid .crown-cell.edge-b { border-bottom-color: var(--cr-ink); }
+.crown-grid .xmark { color: var(--cr-ink); font-weight: 700; }
+.crown-grid .xmark.auto { opacity: 0.6; }
+.crown-grid .crown-cell svg { left: 15%; top: 15%; width: 70%; height: 70%; }
+.crown-grid .crown-cell.bad { color: var(--cr-bad); }
+.crown-grid .rg0 { background-color: var(--cr0); } .crown-grid .rg1 { background-color: var(--cr1); } .crown-grid .rg2 { background-color: var(--cr2); }
+.crown-grid .rg3 { background-color: var(--cr3); } .crown-grid .rg4 { background-color: var(--cr4); } .crown-grid .rg5 { background-color: var(--cr5); }
+.crown-grid .rg6 { background-color: var(--cr6); } .crown-grid .rg7 { background-color: var(--cr7); } .crown-grid .rg8 { background-color: var(--cr8); }
 .rg0 { background-color: var(--r0); } .rg1 { background-color: var(--r1); } .rg2 { background-color: var(--r2); }
 .rg3 { background-color: var(--r3); } .rg4 { background-color: var(--r4); } .rg5 { background-color: var(--r5); }
 .rg6 { background-color: var(--r6); } .rg7 { background-color: var(--r7); } .rg8 { background-color: var(--r8); }
