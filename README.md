@@ -1,6 +1,6 @@
 # Daily Puzzles
 
-Twenty-one daily puzzle games in one web app. Every puzzle is generated in the browser from the date, so there is a fresh set each day with no server, no database and no scheduled job.
+Twenty-two daily puzzle games in one web app. Every puzzle is generated in the browser from the date, so there is a fresh set each day with no server, no database and no scheduled job.
 
 | Game | Plays like | Easy | Medium | Hard |
 |---|---|---|---|---|
@@ -24,6 +24,7 @@ Twenty-one daily puzzle games in one web app. Every puzzle is generated in the b
 | Typeshaft | Typeshift | 4 columns | 5 columns | 6 columns, wider word list |
 | Where's My Seet | Where's My Seat? | 5 seats, one seat given | 6 seats | 7 seats, only relative clues |
 | Wordscopes | Wordscapes | 5-letter wheel | 6-letter wheel | 7-letter wheel, 4+ letter words |
+| Wordbund | Wordbind | 4+ letters, goals at 4 to 6 | 5+ letters, goals at 5 to 7 | longer phrase, goals at 6 to 8 |
 | Woffle | Waffle | common words, par 6 swaps | common words, par 10 | wider word list, par 10, fewer green to start |
 
 Crissclimb's top and bottom words join into a compound word (FIRE + WORK). Spilling Bee is solved when you find a pangram.

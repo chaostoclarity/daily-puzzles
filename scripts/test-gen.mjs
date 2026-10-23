@@ -17,6 +17,7 @@ import { generateLetterbox, letterboxError } from '../src/gen/letterbox.js';
 import { generateGroups, initCategories } from '../src/gen/groups.js';
 import { generateThreads } from '../src/gen/threads.js';
 import { generateMidi } from '../src/gen/mini.js';
+import { generateWordbind, bindable } from '../src/gen/wordbind.js';
 import { generatePileup, handOf, scoreBoard } from '../src/gen/pileup.js';
 import { generateKnotwords, countSolutions as kwCount } from '../src/gen/knotwords.js';
 import { generateWordscapes, fits as wsFits } from '../src/gen/wordscapes.js';
@@ -130,6 +131,15 @@ run('tiles', {
     }
   },
 });
+run('wordbind', {
+  gen: generateWordbind,
+  check: (p, d, s) => {
+    assert(p.src === p.words.join(''), `wordbind src ${s}`);
+    assert(p.all.every((w) => bindable(w, p.src) && isWord(w, 50)), `wordbind words ${s}`);
+    for (const [L, n] of Object.entries(p.goals)) assert(p.common.filter((w) => w.length === Number(L)).length >= n, `wordbind goal ${L} ${s}`);
+  },
+});
+assert(bindable('balloon', 'balon') && !bindable('nab', 'ban') && !bindable('bbb', 'b'), 'wordbind letter rule');
 run('pileup', {
   gen: generatePileup,
   check: (p, d, s) => {
