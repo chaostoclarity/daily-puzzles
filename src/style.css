@@ -113,6 +113,16 @@ h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
 .card:hover { transform: translateY(-2px); border-color: var(--g); }
+.card-row { position: relative; }
+.card-row .card { padding-right: 52px; height: 100%; }
+.fav-btn {
+  position: absolute; top: 50%; right: 8px; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%;
+  border: 0; background: transparent; padding: 8px; cursor: pointer; color: var(--muted); display: grid; place-items: center;
+}
+.fav-btn svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.fav-btn:hover { color: var(--ink); }
+.fav-btn.on { color: #e8a317; }
+.fav-btn.on svg { fill: currentColor; }
 .card-icon { width: 46px; height: 46px; border-radius: 9px; display: grid; place-items: center; background: var(--g); color: var(--on-color); }
 .card-icon svg { width: 26px; height: 26px; }
 .card-text { display: grid; min-width: 0; }

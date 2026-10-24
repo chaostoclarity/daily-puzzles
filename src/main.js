@@ -103,26 +103,47 @@ function rulesSheet(g) {
 function renderHome() {
   cleanup();
   document.title = 'Daily Puzzles';
+  const favs = store.get('dp:favs', []).filter((id) => GAMES.some((g) => g.id === id));
+  const isFav = (g) => favs.includes(g.id);
+  const toggleFav = (g) => {
+    const next = isFav(g) ? favs.filter((id) => id !== g.id) : [...favs, g.id];
+    store.set('dp:favs', next);
+    const y = window.scrollY;
+    renderHome();
+    window.scrollTo(0, y);
+  };
+  const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 17l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"/></svg>';
   const card = (g) => {
     const d = diffOf(g);
     const sk = saveKey(g, d, 0);
     const doneAt = store.get(`dp:done:${sk}`);
     const started = store.get(`dp:s:${sk}`);
     const chip = doneAt ? h('span', { class: 'chip done' }, 'Solved') : started ? h('span', { class: 'chip' }, 'In progress') : null;
-    return h('a', { class: 'card', href: `#${g.id}`, style: { '--g': `var(--g-${g.id})` } },
-      h('span', { class: 'card-icon', html: ICONS[g.id] }),
-      h('span', { class: 'card-text' },
-        h('span', { class: 'card-name' }, g.name),
-        h('span', { class: 'card-tag' }, g.tagline)),
-      h('span', { class: 'card-meta' }, chip, h('span', { class: 'card-diff' }, DIFFS.find((x) => x[0] === d)[1])));
+    return h('div', { class: 'card-row', style: { '--g': `var(--g-${g.id})` } },
+      h('a', { class: 'card', href: `#${g.id}` },
+        h('span', { class: 'card-icon', html: ICONS[g.id] }),
+        h('span', { class: 'card-text' },
+          h('span', { class: 'card-name' }, g.name),
+          h('span', { class: 'card-tag' }, g.tagline)),
+        h('span', { class: 'card-meta' }, chip, h('span', { class: 'card-diff' }, DIFFS.find((x) => x[0] === d)[1]))),
+      h('button', {
+        class: 'fav-btn' + (isFav(g) ? ' on' : ''), type: 'button', html: STAR,
+        'aria-pressed': isFav(g) ? 'true' : 'false', 'aria-label': `${isFav(g) ? 'Remove' : 'Add'} ${g.name} ${isFav(g) ? 'from' : 'to'} favorites`,
+        onClick: () => toggleFav(g),
+      }));
   };
+  // favorites first, in the order you starred them; each game shows once
+  const sections = [
+    ...(favs.length ? [['Favorites', favs.map((id) => GAMES.find((g) => g.id === id))]] : []),
+    ...SECTIONS.map(([title, list]) => [title, list.filter((g) => !isFav(g))]).filter(([, list]) => list.length),
+  ];
   const solvedCount = GAMES.filter((g) => store.get(`dp:done:${saveKey(g, diffOf(g), 0)}`)).length;
   put(app, h('main', { class: 'home' },
     h('header', { class: 'home-head' },
       h('p', { class: 'eyebrow' }, prettyDate()),
       h('h1', {}, 'Daily Puzzles'),
-      h('p', { class: 'home-sub' }, solvedCount === GAMES.length ? `All ${GAMES.length} solved today. New set at midnight.` : `${solvedCount} of ${GAMES.length} solved today. New puzzles every midnight.`)),
-    h('nav', { class: 'sections', 'aria-label': 'Games' }, SECTIONS.map(([title, list]) => h('section', { class: 'section' },
+      h('p', { class: 'home-sub' }, solvedCount === GAMES.length ? `All ${GAMES.length} solved today. New set at midnight.` : `${solvedCount} of ${GAMES.length} solved today. New puzzles every midnight.` + (favs.length ? '' : ' Tap ☆ to pin a game to the top.'))),
+    h('nav', { class: 'sections', 'aria-label': 'Games' }, sections.map(([title, list]) => h('section', { class: 'section' + (title === 'Favorites' ? ' favs' : '') },
       h('h2', { class: 'section-title' }, title),
       h('div', { class: 'cards' }, list.map(card))))),
     h('footer', { class: 'foot' },
