@@ -1,5 +1,5 @@
 import { h, put, shake } from '../lib/ui.js';
-import { generatePileup, scoreBoard, handOf, POINTS, LABEL, JOKER, linesOf } from '../gen/pileup.js';
+import { generatePileup, scoreBoard, LABEL, JOKER, linesOf, boardHope } from '../gen/pileup.js';
 
 const SUIT = { s: '♠', h: '♥', d: '♦', c: '♣' };
 const RANK = (r) => (r === 'T' ? '10' : r);
@@ -45,11 +45,18 @@ export default {
     const nextEl = h('div', { class: 'pk-next' });
     const dealBtn = h('button', { class: 'btn primary', type: 'button', onClick: deal }, 'Deal');
     const total = h('p', { class: 'pk-total', 'aria-live': 'polite' });
+    // star targets come from a practice bot's best run on today's deals
+    const goal = p.stars || [0, 0, 0];
+    const starsEarned = (v) => goal.filter((g) => v >= g).length;
+    const starText = (k) => '★'.repeat(k) + '☆'.repeat(3 - k);
+    const meter = h('div', { class: 'pk-meter', role: 'img' },
+      h('span', { class: 'pk-fill' }),
+      ...goal.map((g, k) => h('span', { class: 'pk-tick', style: { left: `${Math.min(100, (g / goal[2]) * 100)}%` } }, h('b', {}, '★'), h('small', {}, money(g)))));
     const breakdown = h('div', { class: 'pk-lines' });
     // one card width for grid, discard pile and hand, sized so all three fit on one screen
     const wrap = h('div', { class: 'pk-wrap', style: { '--n': n } },
       h('div', { class: 'pk-board' }, gridEl), h('p', { class: 'pk-label' }, 'Discard pile ×3'), discardEl, handEl);
-    root.append(total, wrap, nextEl, breakdown);
+    root.append(total, meter, wrap, nextEl, breakdown);
 
     function pick(i) { if (done) return; sel = sel === i ? null : i; render(); }
 
@@ -83,7 +90,8 @@ export default {
         done = true;
         const s = scoreBoard(n, grid, discards);
         render();
-        ctx.solved(`${money(s.total)} · ${s.lines.filter((l) => l.points).length} hands`);
+        const k = starsEarned(s.total);
+        ctx.solved(`${starText(k)} ${money(s.total)}` + (k < 3 ? ` (${money(goal[k])} for ${k + 1} star${k ? 's' : ''})` : ' · beat the bot'));
         return;
       }
       hand = p.deals[turn].slice();
@@ -100,6 +108,10 @@ export default {
         ? hand.map((c, i) => cardEl(c, sel === i ? 'sel' : '', { role: 'button', tabindex: '0', onClick: () => pick(i) }))
         : done ? null : dealBtn);
       put(nextEl, p.preview && !done && p.deals[turn + 1] ? [h('span', {}, 'Next deal'), ...p.deals[turn + 1].map((c) => cardEl(c, 'mini'))] : null);
+      const k = starsEarned(s.total);
+      meter.firstChild.style.width = `${Math.min(100, (s.total / Math.max(1, goal[2])) * 100)}%`;
+      [...meter.querySelectorAll('.pk-tick')].forEach((el, j) => el.classList.toggle('on', j < k));
+      meter.setAttribute('aria-label', `${k} of 3 stars. Targets ${goal.map(money).join(', ')}`);
       put(total, h('b', {}, money(s.total)), h('span', {}, ` · ×${s.handMult} for ${s.lines.filter((l) => l.base).length} hands · deal ${Math.min(turn + 1, p.deals.length)} of ${p.deals.length}`));
       const name = (l) => (l.kind === 'row' ? `Row ${l.idx + 1}` : l.kind === 'col' ? `Column ${l.idx + 1}` : l.kind === 'corners' ? 'Corners ×2' : 'Discards ×3');
       put(breakdown, s.lines.filter((l) => l.hand).map((l) => h('div', { class: 'pk-line' + (l.blocked ? ' blocked' : '') },
@@ -114,17 +126,8 @@ export default {
         if (done || !hand.length) return false;
         // place one card where it adds the most to a simple look-ahead score
         let best = null;
-        const potential = () => {
-          let v = 0;
-          for (const l of linesOf(n)) {
-            const cs = l.cells.map((i) => grid[i]).filter(Boolean);
-            if (cs.length === n) { const hnd = handOf(cs); v += hnd ? POINTS[hnd] * (l.kind === 'corners' ? 2 : 1) : -20; continue; }
-            const ranks = {}; const suits = new Set();
-            for (const c of cs) { ranks[c[0]] = (ranks[c[0]] || 0) + 1; suits.add(c[1]); }
-            v += Object.values(ranks).reduce((a, k) => a + (k > 1 ? k * k * 6 : 0), 0) + (cs.length > 1 && suits.size === 1 ? cs.length * 8 : 0);
-          }
-          return v;
-        };
+        // the same look-ahead the practice bot uses
+        const potential = () => boardHope(n, grid, discards);
         const base = potential();
         const gridLeft = n - fresh.length;
         hand.forEach((card, k) => {

@@ -174,6 +174,7 @@ run('pileup', {
   check: (p, d, s) => {
     const all = p.deals.flat();
     assert(new Set(all).size === all.length && p.deals.length === p.n && p.deals.every((x) => x.length === p.n + 1), `pileup deals ${s}`);
+    assert(p.stars.length === 3 && p.stars[0] > 0 && p.stars[0] < p.stars[1] && p.stars[1] < p.stars[2], `pileup stars ${p.stars} ${s}`);
   },
 });
 {

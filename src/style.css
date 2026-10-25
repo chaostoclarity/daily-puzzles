@@ -727,6 +727,12 @@ body::before { content: ''; position: fixed; inset: 0 0 auto; height: env(safe-a
 .pk-next { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 0.8rem; color: var(--muted); }
 .pk-next .pk-card { width: 26px; cursor: default; } .pk-next .pk-card b { font-size: 0.75rem; } .pk-next .pk-card i { font-size: 0.65rem; }
 .pk-total { margin: 0; text-align: center; color: var(--muted); }
+.pk-meter { position: relative; height: 8px; border-radius: 99px; background: var(--soft); margin: 4px 14px 22px; }
+.pk-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 99px; background: var(--g); transition: width 0.3s ease; }
+.pk-tick { position: absolute; top: 50%; transform: translate(-50%, -50%); display: grid; justify-items: center; line-height: 1; }
+.pk-tick b { font-size: 1.15rem; color: var(--line); text-shadow: 0 0 2px var(--paper); }
+.pk-tick.on b { color: #e8a317; }
+.pk-tick small { position: absolute; top: 100%; margin-top: 2px; font-size: 0.62rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
 .pk-total b { font-family: var(--f-display); font-size: 1.5rem; color: var(--ink); }
 .pk-lines { display: grid; gap: 4px; }
 .pk-line { display: grid; grid-template-columns: 7em 1fr auto; gap: 8px; padding: 6px 10px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line); font-size: 0.9rem; }

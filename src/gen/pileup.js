@@ -13,9 +13,9 @@ export const SUITS = ['s', 'h', 'd', 'c'];
 export const JOKER = 'W*';
 
 const SETTINGS = {
-  easy: { size: 4, low: 4, joker: false, preview: true },
-  medium: { size: 4, low: 4, joker: false, preview: false },
-  hard: { size: 5, low: 0, joker: true, preview: false },
+  easy: { size: 4, low: 4, joker: false, preview: true, runs: 40 },
+  medium: { size: 4, low: 4, joker: false, preview: false, runs: 40 },
+  hard: { size: 5, low: 0, joker: true, preview: false, runs: 20 },
 };
 
 export const POINTS = { pair: 5, twopair: 60, flush: 80, trips: 125, straight: 180, fullhouse: 230, quads: 325, straightflush: 450 };
@@ -76,6 +76,70 @@ export function scoreBoard(n, grid, discards) {
   return { lines, handMult, total: lines.reduce((a, l) => a + l.points, 0) };
 }
 
+/** Rough promise of a line still being filled, used by the practice bot and hints. */
+function lineHope(cards, n) {
+  const have = cards.filter(Boolean);
+  if (have.length === n) { const hnd = handOf(have); return hnd ? POINTS[hnd] : -40; }
+  if (have.length < 2) return 0;
+  const real = have.filter((c) => c !== JOKER);
+  const counts = {};
+  for (const c of real) counts[c[0]] = (counts[c[0]] || 0) + 1;
+  const vals = Object.values(counts).sort((a, b) => b - a);
+  let v = 0;
+  if (vals[0] >= 4) v += 250; else if (vals[0] === 3) v += 90; else if (vals[0] === 2) v += vals[1] === 2 ? 45 : 12;
+  if (real.every((c) => c[1] === real[0][1])) v += 14 * have.length;
+  const ranks = real.map((c) => RANKS.indexOf(c[0]));
+  if (new Set(ranks).size === ranks.length && Math.max(...ranks) - Math.min(...ranks) <= n - 1) v += 12 * have.length;
+  if (have.length > real.length) v += 30;
+  return v;
+}
+
+/** Potential of a whole board: every line, corners doubled, discards tripled. */
+export function boardHope(n, grid, discards) {
+  let v = 0;
+  for (const l of linesOf(n)) v += lineHope(l.cells.map((i) => grid[i]), n) * (l.kind === 'corners' ? 2 : 1);
+  return v + lineHope(discards, n) * 1.5;
+}
+
+/** One noisy greedy playthrough of the deals; returns the final score. Only lines touched by a
+ *  move are re-scored, which keeps a few dozen playthroughs fast enough for phones. */
+function botGame(n, deals, rng, noise) {
+  const grid = new Array(n * n).fill('');
+  const discards = [];
+  const lines = linesOf(n);
+  const byCell = Array.from({ length: n * n }, () => []);
+  lines.forEach((l) => l.cells.forEach((c) => byCell[c].push(l)));
+  const lineVal = (l) => lineHope(l.cells.map((i) => grid[i]), n) * (l.kind === 'corners' ? 2 : 1);
+  for (const deal of deals) {
+    const hand = deal.slice();
+    let toGrid = n, discarded = false;
+    while (hand.length) {
+      let best = null;
+      const dBase = lineHope(discards, n) * 1.5;
+      hand.forEach((card, k) => {
+        if (toGrid > 0) grid.forEach((c, i) => {
+          if (c) return;
+          const ls = byCell[i];
+          let before = 0, after = 0;
+          for (const l of ls) before += lineVal(l);
+          grid[i] = card;
+          for (const l of ls) after += lineVal(l);
+          grid[i] = '';
+          const v = after - before + rng.next() * noise;
+          if (!best || v > best.v) best = { v, k, i };
+        });
+        if (!discarded) {
+          discards.push(card); const v = lineHope(discards, n) * 1.5 - dBase + rng.next() * noise - (toGrid > 0 && hand.length > 1 ? 6 : -1000); discards.pop();
+          if (!best || v > best.v) best = { v, k, i: -1 };
+        }
+      });
+      const card = hand.splice(best.k, 1)[0];
+      if (best.i < 0) { discards.push(card); discarded = true; } else { grid[best.i] = card; toGrid--; }
+    }
+  }
+  return scoreBoard(n, grid, discards).total;
+}
+
 export function generatePileup(rng, difficulty = 'medium') {
   const s = SETTINGS[difficulty] || SETTINGS.medium;
   const deck = [];
@@ -84,5 +148,11 @@ export function generatePileup(rng, difficulty = 'medium') {
   const per = s.size + 1;
   const cards = rng.shuffle(deck).slice(0, per * s.size);
   const deals = Array.from({ length: s.size }, (_, t) => cards.slice(t * per, t * per + per));
-  return { n: s.size, deals, preview: s.preview, deckSize: deck.length };
+  // stars: a practice bot plays today's deals many times; its best run sets the bar
+  const bot = rng.fork('bot');
+  let best = 0;
+  for (let run = 0; run < s.runs; run++) best = Math.max(best, botGame(s.size, deals, bot, run === 0 ? 0 : 40));
+  const round = (v) => Math.max(5, Math.round(v / 5) * 5);
+  const stars = [round(best * 0.3), round(best * 0.6), round(best)];
+  return { n: s.size, deals, preview: s.preview, deckSize: deck.length, stars };
 }
