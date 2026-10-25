@@ -290,8 +290,11 @@ h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; }
 .rung.locked .tile { background: var(--soft); border-style: dashed; }
 .rung.end:not(.locked) .tile:not(.filled) { border-color: var(--g); }
 .rung-move { display: grid; grid-auto-flow: column; gap: 4px; }
+.rung.draggable { touch-action: none; cursor: grab; transition: transform 0.15s ease; }
+.rung.dragging { transition: none; z-index: 2; cursor: grabbing; background: var(--surface); box-shadow: 0 8px 20px rgb(0 0 0 / 0.18); }
+.rung-grip { font-size: 1.3rem; color: var(--muted); padding: 0 4px; line-height: 1; }
 .rung-move .icon-btn { width: 30px; height: 26px; border-radius: 6px; font-size: 0.7rem; }
-.rung:not(:has(.rung-move)) { grid-template-columns: 1fr; }
+.rung:not(:has(.rung-move)):not(:has(.rung-grip)) { grid-template-columns: 1fr; }
 
 /* ---------- keyboard ---------- */
 .kb {

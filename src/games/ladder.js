@@ -10,7 +10,7 @@ export default {
   rules: [
     'Each rung is a word that differs from the rung next to it by exactly one letter.',
     'Tap a rung to see its clue, then type the answer.',
-    'When the rungs are out of order, use the arrows to move them until each step changes one letter.',
+    'When the rungs are out of order, drag them up or down until each step changes one letter.',
     'Solve every middle rung in order to unlock the top and bottom words. Together they make a compound word, like FIRE + WORK.',
   ],
   mount(root, ctx) {
@@ -42,24 +42,55 @@ export default {
       const val = entry[key] || '';
       const solved = val === word;
       const row = h('div', {
-        class: 'rung' + (key === active ? ' active' : '') + (solved ? ' solved' : '') + (opts.locked ? ' locked' : '') + (opts.end ? ' end' : ''),
-        role: 'listitem', 'data-key': key,
-        onClick: () => { if (!opts.locked && !done) { active = key; render(); } },
+        class: 'rung' + (key === active ? ' active' : '') + (solved ? ' solved' : '') + (opts.locked ? ' locked' : '') + (opts.end ? ' end' : '') + (opts.move && !done ? ' draggable' : ''),
+        role: 'listitem', 'data-key': key, 'data-pos': opts.move ? opts.pos : null,
+        onClick: () => { if (justDragged) return; if (!opts.locked && !done) { active = key; render(); } },
       },
       h('div', { class: 'rung-letters', 'aria-label': opts.locked ? 'Locked' : val || 'Empty' },
         Array.from({ length: len }, (_, i) => h('span', { class: 'tile' + (val[i] ? ' filled' : '') }, opts.locked ? '' : (val[i] || '').toUpperCase()))),
-      opts.move ? h('div', { class: 'rung-move' },
-        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Move up', disabled: opts.first || done, onClick: (e) => { e.stopPropagation(); move(opts.pos, -1); } }, '▲'),
-        h('button', { class: 'icon-btn', type: 'button', 'aria-label': 'Move down', disabled: opts.last || done, onClick: (e) => { e.stopPropagation(); move(opts.pos, 1); } }, '▼')) : null);
+      opts.move && !done ? h('span', { class: 'rung-grip', 'aria-hidden': 'true' }, '⠿') : null);
       return row;
     }
 
-    function move(pos, d) {
-      const j = pos + d;
-      if (j < 0 || j >= order.length) return;
-      [order[pos], order[j]] = [order[j], order[pos]];
+    // drag a middle rung up or down to reorder; a short press still just selects it
+    let drag = null, justDragged = false;
+    list.addEventListener('pointerdown', (e) => {
+      const row = e.target.closest('.rung.draggable');
+      if (!row || done) return;
+      const rows = [...list.querySelectorAll('.rung.draggable')];
+      const pitch = rows.length > 1 ? rows[1].getBoundingClientRect().top - rows[0].getBoundingClientRect().top : row.offsetHeight;
+      drag = { row, rows, from: +row.dataset.pos, to: +row.dataset.pos, y0: e.clientY, pitch, on: false, id: e.pointerId };
+    });
+    list.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const dy = e.clientY - drag.y0;
+      if (!drag.on) {
+        if (Math.abs(dy) < 8) return;
+        drag.on = true; drag.row.classList.add('dragging'); list.setPointerCapture(drag.id);
+      }
+      e.preventDefault();
+      const n = drag.rows.length;
+      const minDy = -drag.from * drag.pitch, maxDy = (n - 1 - drag.from) * drag.pitch;
+      const d = Math.max(minDy, Math.min(maxDy, dy));
+      drag.to = Math.max(0, Math.min(n - 1, drag.from + Math.round(d / drag.pitch)));
+      drag.row.style.transform = `translateY(${d}px)`;
+      drag.rows.forEach((r, j) => {
+        if (r === drag.row) return;
+        const shift = drag.from < drag.to && j > drag.from && j <= drag.to ? -drag.pitch : drag.to < drag.from && j >= drag.to && j < drag.from ? drag.pitch : 0;
+        r.style.transform = shift ? `translateY(${shift}px)` : '';
+      });
+    });
+    const endDrag = () => {
+      if (!drag) return;
+      const { on, from, to } = drag;
+      drag = null;
+      if (!on) return;
+      justDragged = true; setTimeout(() => { justDragged = false; }, 0);
+      if (to !== from) { const [x] = order.splice(from, 1); order.splice(to, 0, x); }
       render();
-    }
+    };
+    list.addEventListener('pointerup', endDrag);
+    list.addEventListener('pointercancel', endDrag);
 
     function clueText() {
       if (active === 'top' || active === 'bottom') {
