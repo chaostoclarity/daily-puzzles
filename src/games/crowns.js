@@ -5,6 +5,7 @@ const CROWN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 18h18l-1.
 
 export default {
   id: 'crowns',
+  version: 2, // sizes changed to 7, 8 and 10, so older saves don't load onto a new board
   name: 'Queins',
   tagline: 'One crown per row, column and color',
   generate: generateCrowns,

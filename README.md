@@ -5,7 +5,7 @@ Twenty-five daily puzzle games in one web app. Every puzzle is generated in the 
 | Game | Plays like | Easy | Medium | Hard |
 |---|---|---|---|---|
 | Zap | Zip | 5x5, many numbers | 6x6, a few walls | 7x7, fewer numbers, more walls |
-| Queins | Queens | 6x6 | 7x7 | 8x8, no conflict highlights |
+| Queins | Queens | 7x7 | 8x8 | 10x10, no conflict highlights |
 | Wand | Wend | 5x5, words of 3 to 6 letters | 6x6, 4 to 8 letters | 7x7, 4 to 9 letters |
 | Crissclimb | Crossclimb | 3 rungs in order | 5 rungs, scrambled | 6 rungs, scrambled, synonym clues |
 | Werdle | Wordle | 4 letters | 5 letters | 5 letters, less common, hints must be reused |

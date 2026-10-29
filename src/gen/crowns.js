@@ -2,7 +2,7 @@
 // Places a hidden solution, grows color regions around it, then reshapes regions until
 // the solution is the only one.
 
-const SIZES = { easy: 6, medium: 7, hard: 8 };
+const SIZES = { easy: 7, medium: 8, hard: 10 };
 
 function placeCrowns(n, rng) {
   const cols = new Array(n);
