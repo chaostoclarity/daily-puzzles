@@ -1,0 +1,114 @@
+/* ---------- Knatwords ----------
+   The one bold thing: each region is a quilted patch, its own rounded tile with a cord around it
+   and stitched seams inside, set apart from its neighbors by a gutter. Letters drop in, a patch
+   pulls tight like a knot when it's full and turns the game's color, a run that becomes a word
+   hops along its letters, and hinted letters get a knot pin. At the win the patches light up one
+   by one and a wave runs through the letters. */
+.game-knotwords {
+  --kw-cord: color-mix(in srgb, var(--ink) 85%, var(--g));
+  --kw-patch: color-mix(in srgb, var(--g) 5%, var(--surface));
+  --kw-seam: color-mix(in srgb, var(--g) 26%, var(--line));
+  --kw-gut: 3px;
+  --kw-r: 12px;
+  --kw-deep: color-mix(in srgb, var(--g) 80%, #000);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .game-knotwords { --kw-deep: var(--g); } }
+:root[data-theme="dark"] .game-knotwords { --kw-deep: var(--g); }
+
+.game-knotwords .kw-board { width: min(100%, 400px, calc(100svh - 320px)); }
+.game-knotwords .kw-grid .kw-cell {
+  border: 0; background: transparent; isolation: isolate; color: var(--ink);
+  display: grid; place-items: center; -webkit-tap-highlight-color: transparent;
+}
+/* the patch (::before) and a flash layer of the same shape (::after) */
+.game-knotwords .kw-cell::before, .game-knotwords .kw-cell::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+}
+.game-knotwords .kw-cell::before {
+  z-index: -2; background: var(--kw-patch);
+  border-right: 1.5px dashed var(--kw-seam); border-bottom: 1.5px dashed var(--kw-seam);
+  transition: background-color 0.18s ease;
+}
+.game-knotwords .kw-cell::after { z-index: -1; background: var(--g); opacity: 0; }
+.game-knotwords .kw-cell.et::before, .game-knotwords .kw-cell.et::after { top: var(--kw-gut); }
+.game-knotwords .kw-cell.eb::before, .game-knotwords .kw-cell.eb::after { bottom: var(--kw-gut); }
+.game-knotwords .kw-cell.el::before, .game-knotwords .kw-cell.el::after { left: var(--kw-gut); }
+.game-knotwords .kw-cell.er::before, .game-knotwords .kw-cell.er::after { right: var(--kw-gut); }
+.game-knotwords .kw-cell.et::before { border-top: 2.5px solid var(--kw-cord); }
+.game-knotwords .kw-cell.eb::before { border-bottom: 2.5px solid var(--kw-cord); }
+.game-knotwords .kw-cell.el::before { border-left: 2.5px solid var(--kw-cord); }
+.game-knotwords .kw-cell.er::before { border-right: 2.5px solid var(--kw-cord); }
+.game-knotwords .kw-cell.et.el::before, .game-knotwords .kw-cell.et.el::after { border-top-left-radius: var(--kw-r); }
+.game-knotwords .kw-cell.et.er::before, .game-knotwords .kw-cell.et.er::after { border-top-right-radius: var(--kw-r); }
+.game-knotwords .kw-cell.eb.el::before, .game-knotwords .kw-cell.eb.el::after { border-bottom-left-radius: var(--kw-r); }
+.game-knotwords .kw-cell.eb.er::before, .game-knotwords .kw-cell.eb.er::after { border-bottom-right-radius: var(--kw-r); }
+/* an inside corner: a square of gutter with the cord turning around it */
+.game-knotwords .kw-notch {
+  position: absolute; z-index: 0; pointer-events: none; background: var(--paper);
+  width: calc(var(--kw-gut) + 2.5px); height: calc(var(--kw-gut) + 2.5px);
+  border: 0 solid var(--kw-cord);
+}
+.game-knotwords .kw-notch.bl { left: 0; bottom: 0; border-top-width: 2.5px; border-right-width: 2.5px; border-top-right-radius: 3px; }
+.game-knotwords .kw-notch.br { right: 0; bottom: 0; border-top-width: 2.5px; border-left-width: 2.5px; border-top-left-radius: 3px; }
+.game-knotwords .kw-notch.tl { left: 0; top: 0; border-bottom-width: 2.5px; border-right-width: 2.5px; border-bottom-right-radius: 3px; }
+.game-knotwords .kw-notch.tr { right: 0; top: 0; border-bottom-width: 2.5px; border-left-width: 2.5px; border-bottom-left-radius: 3px; }
+/* a little depth under each patch */
+.game-knotwords .kw-cell.eb::before { box-shadow: 0 2px 0 color-mix(in srgb, var(--kw-cord) 22%, transparent); }
+
+/* states */
+.game-knotwords .kw-cell.same::before { background: color-mix(in srgb, var(--g) 15%, var(--surface)); }
+.game-knotwords .kw-cell.full { --kw-cord: var(--g); --kw-seam: color-mix(in srgb, var(--g) 45%, var(--surface)); }
+.game-knotwords .kw-cell.full::before { background: color-mix(in srgb, var(--g) 17%, var(--surface)); }
+.game-knotwords .kw-cell.full.same::before { background: color-mix(in srgb, var(--g) 24%, var(--surface)); }
+.game-knotwords .kw-cell.sel::before { background: color-mix(in srgb, var(--mark) 58%, var(--surface)); }
+.game-knotwords .kw-cell:focus-visible { outline: none; }
+.game-knotwords .kw-cell:focus-visible::before { outline: 3px solid var(--mark); outline-offset: -3px; }
+
+/* letters */
+.game-knotwords .kw-cell b { position: relative; display: inline-block; line-height: 1; font-size: clamp(1.4rem, 8vw, 2.1rem); }
+.game-knotwords .kw-cell.good b { color: var(--kw-deep); }
+.game-knotwords .kw-cell.locked b { text-decoration: none; }
+.game-knotwords .kw-cell b.in { animation: kw-drop 0.32s cubic-bezier(0.3, 1.5, 0.5, 1); }
+@keyframes kw-drop { 0% { transform: translateY(-12px) scale(1.45); opacity: 0; } 60% { opacity: 1; } }
+/* the region's letter list, top left of its first square */
+.game-knotwords .kw-key { top: calc(var(--kw-gut) + 4px); left: calc(var(--kw-gut) + 6px); gap: 3px; font-size: clamp(0.58rem, 2.6vw, 0.74rem); letter-spacing: 0.04em; }
+.game-knotwords .kw-key i { transition: opacity 0.2s ease; }
+.game-knotwords .kw-key i.gone { opacity: 0.28; text-decoration: none; }
+/* a hinted letter is pinned with a knot */
+.game-knotwords .kw-pin {
+  position: absolute; right: 9px; bottom: 9px; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--mark); box-shadow: 0 0 0 2px var(--surface), 0 0 0 3.5px color-mix(in srgb, var(--mark) 60%, #000);
+}
+
+/* motion */
+.game-knotwords .kw-cell.cleared::before { animation: kw-squish 0.26s ease; }
+@keyframes kw-squish { 40% { transform: scale(0.92); } }
+/* a full patch pulls tight */
+.game-knotwords .kw-cell.tie::before { animation: kw-tie 0.5s cubic-bezier(0.3, 1.5, 0.5, 1) backwards; animation-delay: calc(var(--q) * 35ms); }
+.game-knotwords .kw-cell.tie::after { animation: kw-flash 0.7s ease-out backwards; animation-delay: calc(var(--q) * 35ms); }
+@keyframes kw-tie { 0% { transform: scale(1); } 30% { transform: scale(0.9); } 65% { transform: scale(1.04); } }
+@keyframes kw-flash { 0% { opacity: 0; } 25% { opacity: 0.45; } 100% { opacity: 0; } }
+/* a word along a run: its letters hop in reading order */
+.game-knotwords .kw-cell.hop b { animation: kw-hop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1) backwards; animation-delay: calc(var(--h) * 60ms); }
+@keyframes kw-hop { 40% { transform: translateY(-8px) scale(1.15); } }
+.game-knotwords .kw-cell.hinted::after { background: var(--mark); animation: kw-flash 0.9s ease-out; }
+.game-knotwords .kw-cell.hinted .kw-pin { animation: kw-pin 0.45s cubic-bezier(0.3, 1.8, 0.5, 1); }
+@keyframes kw-pin { 0% { transform: scale(0); } }
+
+/* the win: patch by patch the board lights up, then a wave runs through the letters */
+.game-knotwords .kw-grid.win .kw-cell::after { background: var(--g); animation: kw-glow 0.9s ease backwards; animation-delay: calc(var(--rg) * 130ms); }
+@keyframes kw-glow { 0% { opacity: 0; } 35% { opacity: 0.6; } 100% { opacity: 0; } }
+.game-knotwords .kw-grid.win .kw-cell::before { animation: kw-tie 0.6s cubic-bezier(0.3, 1.5, 0.5, 1) backwards; animation-delay: calc(var(--rg) * 130ms); }
+.game-knotwords .kw-grid.win .kw-cell b { animation: kw-hop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) backwards; animation-delay: calc(800ms + var(--d) * 70ms); }
+
+/* the tray: letter tiles you can pick up */
+.game-knotwords .kw-tray { gap: 10px; min-height: 58px; }
+.game-knotwords .kw-letter {
+  width: 52px; height: 54px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface);
+  box-shadow: 0 3px 0 var(--line); font-size: 1.6rem; transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+@media (hover: hover) { .game-knotwords .kw-letter:hover:not(:disabled) { border-color: var(--g); } }
+.game-knotwords .kw-letter:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--line); }
+.game-knotwords .kw-letter:disabled { opacity: 0.3; box-shadow: none; transform: translateY(2px); }
+.game-knotwords .kw-letter.deal { animation: kw-deal 0.34s cubic-bezier(0.3, 1.5, 0.5, 1) backwards; animation-delay: calc(var(--j) * 45ms); }
+@keyframes kw-deal { 0% { transform: translateY(14px) scale(0.7); opacity: 0; } }

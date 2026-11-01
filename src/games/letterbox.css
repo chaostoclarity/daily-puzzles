@@ -1,0 +1,115 @@
+/* ---------- Litter Boxed ----------
+   The one bold thing: a pen on a printed box. Each stroke draws itself from peg to peg, pegs fill
+   with ink as letters get used, finished words settle into a faded trail, and the box slowly takes
+   on the game's color as the twelve letters are covered. At the win a pen traces the box. */
+.game-letterbox {
+  --lb-deep: color-mix(in srgb, var(--g) 78%, #000);
+  --lb-tint: color-mix(in srgb, var(--g) 16%, var(--surface));
+  gap: 10px;
+}
+
+/* the word in progress */
+.game-letterbox .lb-current {
+  display: flex; justify-content: center; align-items: center; min-height: 2.6rem;
+  font-size: 1.9rem; letter-spacing: 0.07em;
+}
+.game-letterbox .lb-current .lt { display: inline-block; }
+.game-letterbox .lb-current .lt.carry { color: var(--g); }
+.game-letterbox .lb-current .lt.in { animation: lb-letter-in 0.26s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.game-letterbox .lb-current .ph { color: var(--muted); animation: lb-fade-in 0.3s ease 0.2s backwards; }
+@keyframes lb-letter-in { 0% { transform: translateY(8px) scale(0.5); opacity: 0; } }
+@keyframes lb-fade-in { from { opacity: 0; } }
+
+/* the chain of finished words */
+.game-letterbox .lb-words {
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 0; min-height: 30px;
+  font-size: 0.95rem;
+}
+.game-letterbox .lb-words .ph { font-size: 0.95rem; }
+.game-letterbox .lb-chip {
+  padding: 2px 10px; border-radius: 99px; background: var(--lb-tint); color: var(--ink);
+  border: 1.5px solid color-mix(in srgb, var(--g) 45%, var(--line)); letter-spacing: 0.06em; font-weight: 700;
+}
+.game-letterbox .lb-chip.new { animation: lb-chip-in 0.5s cubic-bezier(0.25, 1.4, 0.45, 1); }
+@keyframes lb-chip-in { 0% { transform: translateY(18px) scale(0.6); opacity: 0; } 60% { opacity: 1; } }
+.game-letterbox .lb-link { width: 12px; height: 2.5px; background: var(--g); border-radius: 2px; opacity: 0.7; }
+.game-letterbox .lb-count {
+  margin-left: 10px; font-family: var(--f-body); font-weight: 700; font-size: 0.8rem; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.game-letterbox .lb-count.over { color: var(--near); }
+
+/* the box */
+.game-letterbox .lb-board { width: min(100%, 352px); }
+.game-letterbox .lb-svg { overflow: visible; }
+.game-letterbox .lb-shadow { fill: color-mix(in srgb, var(--g) 26%, transparent); }
+.game-letterbox .lb-box { fill: var(--surface); stroke: var(--ink); stroke-width: 3; }
+.game-letterbox .lb-ink {
+  fill: var(--g); stroke: none; opacity: calc(var(--p, 0) * 0.13);
+  transition: opacity 0.7s ease;
+}
+.game-letterbox .lb-trace {
+  fill: none; stroke: var(--g); stroke-width: 5; stroke-linecap: round;
+  stroke-dasharray: 962; stroke-dashoffset: 962; opacity: 0;
+}
+
+/* pen lines: the current word is a bold stroke, finished words a faded trail underneath */
+.game-letterbox .lb-line {
+  fill: none; stroke: var(--g); stroke-width: 4; stroke-linejoin: round; stroke-linecap: round;
+  stroke-dasharray: none; stroke-opacity: 0.38; opacity: 1;
+}
+.game-letterbox .lb-line.just { animation: lb-settle 0.7s ease-out; }
+@keyframes lb-settle { 0% { stroke-opacity: 1; stroke-width: 6.5; } 35% { stroke-opacity: 0.95; stroke-width: 5; } }
+.game-letterbox .lb-seg { fill: none; stroke: var(--g); stroke-width: 5; stroke-linecap: round; }
+.game-letterbox .lb-seg.draw { stroke-dasharray: var(--len); animation: lb-draw 0.2s cubic-bezier(0.3, 0.6, 0.4, 1) both; }
+.game-letterbox .lb-seg.undraw { stroke-dasharray: var(--len); animation: lb-undraw 0.17s ease-in forwards; }
+@keyframes lb-draw { from { stroke-dashoffset: var(--len); } to { stroke-dashoffset: 0; } }
+@keyframes lb-undraw { from { stroke-dashoffset: 0; } to { stroke-dashoffset: var(--len); } }
+.game-letterbox .lb-cur.bad .lb-seg { animation: lb-bad 0.5s ease; }
+@keyframes lb-bad { 0%, 60% { stroke: var(--bad); } }
+.game-letterbox .lb-fade > g { animation: lb-erase 0.42s ease forwards; }
+@keyframes lb-erase { to { opacity: 0; transform: translateY(6px); } }
+
+/* letter pegs on the rim */
+.game-letterbox .lb-letter { cursor: pointer; outline: none; }
+.game-letterbox .lb-letter .lb-hit { fill: transparent; stroke: none; }
+.game-letterbox .lb-peg { transform-box: fill-box; transform-origin: center; }
+.game-letterbox .lb-letter .lb-peg circle.lb-dot {
+  fill: var(--surface); stroke: var(--ink); stroke-width: 2.5; /* no fill transition: it would fight the fill animation */
+}
+.game-letterbox .lb-letter .lb-peg circle.lb-ring { fill: none; stroke: var(--g); stroke-width: 2.5; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.game-letterbox .lb-letter.used .lb-peg circle.lb-dot { fill: var(--lb-tint); stroke: var(--g); }
+.game-letterbox .lb-letter.spent .lb-peg circle.lb-dot { fill: var(--ink); stroke: var(--ink); }
+.game-letterbox .lb-letter.last .lb-peg circle.lb-dot { fill: var(--g); stroke: var(--lb-deep); }
+/* you are here: the pen's current letter breathes a ring */
+.game-letterbox .lb-letter.last .lb-peg circle.lb-ring { animation: lb-ring 1.5s ease-out infinite; }
+@keyframes lb-ring { 0% { transform: scale(0.65); opacity: 0.75; } 100% { transform: scale(1.45); opacity: 0; } }
+.game-letterbox .lb-label { font-family: var(--f-display); font-weight: 700; font-size: 25px; fill: var(--ink); transition: fill 0.3s ease; }
+.game-letterbox .lb-letter.spent .lb-label { fill: var(--muted); }
+.game-letterbox .lb-letter:hover .lb-peg circle.lb-dot { stroke-width: 3.5; }
+.game-letterbox .lb-letter:focus-visible .lb-peg circle.lb-dot { stroke: var(--mark); stroke-width: 4.5; }
+.game-letterbox .lb-letter.press .lb-peg { animation: lb-press 0.3s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes lb-press { 0% { transform: scale(0.7); } 55% { transform: scale(1.3); } }
+.game-letterbox .lb-letter.fill .lb-peg circle.lb-dot { animation: lb-fill 0.45s ease-out; }
+@keyframes lb-fill { 0% { fill: var(--g); stroke: var(--g); } }
+.game-letterbox .lb-letter.nope .lb-peg { animation: lb-nope 0.36s ease; }
+.game-letterbox .lb-letter.nope .lb-peg circle.lb-dot { stroke: var(--bad); }
+@keyframes lb-nope { 20%, 60% { transform: translateX(-3px); } 40%, 80% { transform: translateX(3px); } }
+
+/* the win: a pen traces the box, then every peg pops in turn around it */
+.game-letterbox .lb-board.win .lb-trace { animation: lb-trace 1.15s cubic-bezier(0.45, 0, 0.3, 1) forwards; }
+@keyframes lb-trace {
+  0% { opacity: 1; stroke-dashoffset: 962; }
+  60% { opacity: 1; stroke-dashoffset: 0; }
+  100% { opacity: 0; stroke-dashoffset: 0; }
+}
+.game-letterbox .lb-board.win .lb-peg { animation: lb-win-pop 0.5s cubic-bezier(0.3, 1.7, 0.5, 1) backwards; animation-delay: calc(var(--k) * 50ms); }
+@keyframes lb-win-pop { 0% { transform: scale(1); } 40% { transform: scale(1.55); } }
+.game-letterbox .lb-board.win .lb-line { animation: lb-glow 1.4s ease; }
+@keyframes lb-glow { 30%, 60% { stroke-opacity: 0.85; } }
+/* solved and at rest: the trail stays a little stronger */
+.game-letterbox .lb-board.done .lb-line { stroke-opacity: 0.55; }
+
+.game-letterbox .lb-hint.more b { animation: lb-hint 0.6s ease; }
+@keyframes lb-hint { 0% { color: var(--g); transform: scale(1.08); } }
+.game-letterbox .lb-hint b { display: inline-block; }

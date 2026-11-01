@@ -1,0 +1,142 @@
+/* ---------- Typeshaft ----------
+   The one bold thing: reels of letter tiles riding in shafts behind a window. Columns glide with
+   the speed of a flick and settle with a springy snap; the tile that lands clicks. Letters you
+   haven't used yet are hollow; once a word uses them they turn solid. A found word flashes across
+   the window, and the win sends a wave down every reel. */
+.game-typeshift {
+  --ts-tint: color-mix(in srgb, var(--g) 18%, var(--surface));
+  --ts-edge: color-mix(in srgb, var(--g) 50%, var(--line));
+  --ts-deep: color-mix(in srgb, var(--g) 70%, #000);
+  gap: 10px;
+}
+.game-typeshift .ts-wrap { width: min(100%, 400px); }
+.game-typeshift .ts-board {
+  --cell: 48px; gap: 6px;
+  -webkit-mask-image: linear-gradient(transparent, #000 7%, #000 93%, transparent);
+  mask-image: linear-gradient(transparent, #000 7%, #000 93%, transparent);
+}
+
+/* the window: a framed slot with a sheen that runs across when a word lands */
+.game-typeshift .ts-band {
+  top: calc(50% - var(--cell) / 2 - 3px); height: calc(var(--cell) + 6px); left: -2px; right: -2px;
+  border-radius: 13px; overflow: hidden;
+  background: color-mix(in srgb, var(--g) 13%, transparent);
+  border: 2.5px solid var(--g);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--g) 12%, transparent);
+}
+.game-typeshift .ts-sheen {
+  position: absolute; inset: 0; transform: translateX(-110%);
+  background: linear-gradient(100deg, transparent 20%, color-mix(in srgb, var(--g) 45%, transparent) 45%, color-mix(in srgb, var(--mark) 55%, transparent) 50%, transparent 75%);
+}
+.game-typeshift .ts-board.found .ts-sheen { animation: ts-sheen 0.7s cubic-bezier(0.4, 0, 0.3, 1); }
+@keyframes ts-sheen { from { transform: translateX(-110%); } to { transform: translateX(110%); } }
+.game-typeshift .ts-board.found .ts-band { animation: ts-band 0.7s ease; }
+@keyframes ts-band { 25% { box-shadow: 0 0 0 9px color-mix(in srgb, var(--g) 22%, transparent); } }
+
+/* each column runs in a shaft */
+.game-typeshift .ts-lane { position: relative; touch-action: none; cursor: grab; }
+.game-typeshift .ts-lane::before {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; margin-left: -1.5px; border-radius: 2px;
+  background: color-mix(in srgb, var(--line) 80%, transparent);
+}
+.game-typeshift .ts-lane.held { cursor: grabbing; }
+.game-typeshift .ts-lane::after {
+  content: ''; position: absolute; inset: 0 -3px; border-radius: 12px; pointer-events: none; opacity: 0;
+  box-shadow: inset 0 0 0 3px var(--mark), 0 0 18px color-mix(in srgb, var(--mark) 50%, transparent);
+}
+.game-typeshift .ts-lane.hinted::after { animation: ts-hinted 1.1s ease; }
+@keyframes ts-hinted { 0%, 50% { opacity: 1; } }
+
+.game-typeshift .ts-strip { transition: transform var(--ts-dur, 300ms) cubic-bezier(0.25, 1.3, 0.45, 1); }
+.game-typeshift .ts-lane.held .ts-strip { transition: none; }
+
+/* the tiles */
+.game-typeshift .ts-letter {
+  height: var(--cell); display: grid; place-items: center; padding: 3px 0; opacity: 1; color: inherit;
+  font-size: inherit; -webkit-tap-highlight-color: transparent;
+}
+.game-typeshift .ts-letter:disabled { cursor: default; }
+/* Colors change without transitions and flashes use an overlay's opacity: animating a color into a
+   color-mix() value while a transition runs on the same property renders garbage in Chromium. */
+.game-typeshift .ts-letter span {
+  position: relative; isolation: isolate;
+  display: grid; place-items: center; width: min(100%, 52px); height: 100%; border-radius: 9px;
+  font-family: var(--f-display); font-weight: 700; font-size: 1.6rem; line-height: 1;
+  color: var(--muted); background: var(--surface);
+  border: 2px dashed color-mix(in srgb, var(--muted) 45%, var(--line));
+}
+/* the flash layer: sits over the tile's fill and under its letter */
+.game-typeshift .ts-letter span::before {
+  content: ''; position: absolute; inset: -2px; z-index: -1; border-radius: inherit;
+  background: var(--g); opacity: 0;
+}
+.game-typeshift .ts-letter.used span {
+  color: var(--ink); background: var(--ts-tint); border: 2px solid var(--ts-edge);
+  box-shadow: 0 2px 0 var(--ts-edge);
+}
+.game-typeshift .ts-letter.mid span { color: var(--ts-hot); border-color: var(--g); border-style: solid; background: var(--surface); }
+.game-typeshift .ts-letter.mid.used span { color: var(--ink); background: var(--ts-tint); }
+.game-typeshift .ts-letter:focus-visible { outline: none; }
+.game-typeshift .ts-letter:focus-visible span { outline: 3px solid var(--mark); outline-offset: 1px; }
+/* the unused letter in the window is in the game color: deep on light paper, bright on dark */
+.game-typeshift { --ts-hot: var(--ts-deep); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .game-typeshift { --ts-hot: var(--g); } }
+:root[data-theme="dark"] .game-typeshift { --ts-hot: var(--g); }
+
+/* the tile that lands in the window clicks into place */
+.game-typeshift .ts-letter.land span { animation: ts-land 0.32s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes ts-land { 0% { transform: scale(0.9); } 45% { transform: scale(1.08); } }
+/* letters that a word just used ink in: a flash of the game color that fades into the solid tile */
+.game-typeshift .ts-letter.inked span { animation: ts-ink-pop 0.6s cubic-bezier(0.3, 1.5, 0.5, 1); }
+.game-typeshift .ts-letter.inked span::before { animation: ts-flash 0.75s ease-out; }
+@keyframes ts-ink-pop { 0% { transform: scale(1.14); color: var(--on-color); } 30% { color: var(--on-color); } }
+@keyframes ts-flash { 0%, 25% { opacity: 1; } }
+/* a found word hops across the window, left to right */
+.game-typeshift .ts-board.found .ts-letter.mid span { animation: ts-hop 0.5s cubic-bezier(0.3, 1.5, 0.5, 1) backwards; animation-delay: calc(var(--i) * 55ms); }
+.game-typeshift .ts-board.found .ts-letter.mid.inked span { animation: ts-hop-ink 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) backwards; animation-delay: calc(var(--i) * 55ms); }
+@keyframes ts-hop { 0% { transform: none; } 35% { transform: translateY(-8px) scale(1.08); } }
+@keyframes ts-hop-ink { 0% { transform: none; color: var(--on-color); } 35% { transform: translateY(-8px) scale(1.1); color: var(--on-color); } 60% { color: var(--on-color); } }
+
+/* the win: a wave runs down every reel, column by column, while the window glows */
+.game-typeshift .ts-board.win .ts-letter span { animation: ts-wave 0.6s cubic-bezier(0.3, 1.4, 0.5, 1) backwards; animation-delay: calc(var(--i) * 90ms + var(--k) * 45ms); }
+.game-typeshift .ts-board.win .ts-letter span::before { animation: ts-wave-fill 0.7s ease backwards; animation-delay: calc(var(--i) * 90ms + var(--k) * 45ms); }
+@keyframes ts-wave { 0% { transform: none; } 40% { transform: scale(1.14) rotate(-4deg); color: var(--on-color); } 70% { color: var(--on-color); } }
+@keyframes ts-wave-fill { 0% { opacity: 0; } 30%, 60% { opacity: 1; } 100% { opacity: 0; } }
+.game-typeshift .ts-board.win .ts-band { animation: ts-win-band 1.6s ease; }
+@keyframes ts-win-band { 30%, 60% { background: color-mix(in srgb, var(--g) 30%, transparent); box-shadow: 0 0 0 10px color-mix(in srgb, var(--g) 18%, transparent), 0 0 30px color-mix(in srgb, var(--g) 35%, transparent); } }
+.game-typeshift .ts-board.solved { animation: none; }
+
+/* a found word floats up out of the window */
+.game-typeshift .ts-bubble {
+  position: absolute; left: 50%; top: 50%; z-index: 3; pointer-events: none; white-space: nowrap;
+  font-family: var(--f-display); font-weight: 700; font-size: 1.1rem; letter-spacing: 0.12em;
+  color: var(--on-color); background: var(--ts-deep); padding: 3px 14px; border-radius: 99px;
+  box-shadow: var(--shadow);
+  animation: ts-bubble 1.1s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+@keyframes ts-bubble {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+  20% { transform: translate(-50%, calc(-50% - 44px)) scale(1.05); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate(-50%, calc(-50% - 70px)); opacity: 0; }
+}
+
+/* the middle row, read out below the board */
+.game-typeshift .ts-word { font-size: 1.25rem; letter-spacing: 0.16em; min-height: 1.7em; }
+.game-typeshift .ts-word span { display: inline-block; transition: color 0.2s ease; }
+.game-typeshift .ts-word .ok { color: var(--g); }
+.game-typeshift .ts-word.got span { animation: ts-got 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) backwards; animation-delay: calc(var(--i) * 40ms); }
+@keyframes ts-got { 40% { transform: translateY(-5px) scale(1.2); } }
+
+/* letters used, as a bar */
+.game-typeshift .ts-progress { width: min(100%, 240px); height: 6px; margin: -4px auto 0; border-radius: 99px; background: var(--soft); overflow: hidden; }
+.game-typeshift .ts-progress i {
+  display: block; height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--g) 65%, var(--surface)), var(--g));
+  transition: width 0.7s cubic-bezier(0.25, 1.1, 0.4, 1);
+}
+.game-typeshift .ts-meter { margin-top: -6px; }
+
+.game-typeshift .ts-chip { background: var(--ts-tint); border: 1.5px solid var(--ts-edge); font-family: var(--f-display); letter-spacing: 0.08em; }
+.game-typeshift .ts-chip.new { animation: ts-chip-in 0.5s cubic-bezier(0.25, 1.4, 0.45, 1); }
+@keyframes ts-chip-in { 0% { transform: translateY(-14px) scale(0.5); opacity: 0; } }

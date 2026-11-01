@@ -1,0 +1,126 @@
+/* ---------- Wordscopes ----------
+   The one bold thing: a lens-like dial of letters. Swiping draws a thick trail from letter to
+   letter that follows the finger; a found word's letters fly out of the bubble into their boxes and
+   land with a pop; shuffle sends every letter orbiting to its new place. The win ripples a flip
+   across the crossword while the dial takes a full turn. */
+@property --wsc-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+.game-wordscapes {
+  --wsc-deep: color-mix(in srgb, var(--g) 72%, #000);
+  --wsc-rim: color-mix(in srgb, var(--g) 38%, var(--line));
+  --wsc-fill: var(--g); /* letter tiles; deeper on dark paper so white letters keep their contrast */
+  gap: 10px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .game-wordscapes { --wsc-fill: color-mix(in srgb, var(--g) 62%, #000); --wsc-deep: color-mix(in srgb, var(--g) 35%, #000); } }
+:root[data-theme="dark"] .game-wordscapes { --wsc-fill: color-mix(in srgb, var(--g) 62%, #000); --wsc-deep: color-mix(in srgb, var(--g) 35%, #000); }
+
+/* the crossword: empty slots pressed into the page, letters as raised tiles */
+.game-wordscapes .wsc-board { width: min(100%, calc(var(--cols) * 44px), calc(40svh * var(--cols) / var(--rows))); }
+.game-wordscapes .wsc-grid { gap: 4px; }
+.game-wordscapes .wsc-cell {
+  border-radius: 7px; background: var(--surface); color: transparent;
+  border: 2px solid var(--wsc-rim);
+  box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.08);
+  font-size: clamp(0.95rem, 4.8vw, 1.4rem); line-height: 1;
+}
+.game-wordscapes .wsc-cell.open {
+  background: var(--wsc-fill); border-color: var(--wsc-deep); color: var(--on-color);
+  box-shadow: 0 3px 0 var(--wsc-deep);
+}
+.game-wordscapes .wsc-cell.hinted {
+  background: color-mix(in srgb, var(--mark) 50%, var(--surface)); border-color: var(--mark); color: var(--ink);
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--mark) 70%, #000);
+}
+/* opened, but its letter is still in the air */
+.game-wordscapes .wsc-cell.open.landing {
+  background: var(--surface); border-color: var(--wsc-rim); color: transparent; box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.08);
+}
+.game-wordscapes .wsc-cell.pop { animation: wsc-pop 0.42s cubic-bezier(0.3, 1.7, 0.5, 1); }
+@keyframes wsc-pop { 0% { transform: scale(1.3) translateY(-3px); } }
+.game-wordscapes .wsc-cell.again { animation: wsc-again 0.5s ease; }
+@keyframes wsc-again { 25% { transform: scale(1.14) rotate(-5deg); } 60% { transform: scale(0.96) rotate(3deg); } }
+/* the win: a flip ripples across the grid from the top-left corner */
+.game-wordscapes .wsc-grid.win .wsc-cell { animation: wsc-flip 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards; animation-delay: calc(var(--d) * 55ms); }
+@keyframes wsc-flip { 0% { transform: perspective(300px) rotateY(0); } 50% { transform: perspective(300px) rotateY(180deg) scale(1.12); } 100% { transform: perspective(300px) rotateY(360deg); } }
+.game-wordscapes .wsc-grid.solved { animation: none; }
+
+/* a letter on its way to the grid */
+.wsc-fly {
+  position: fixed; left: 0; top: 0; z-index: 40; pointer-events: none; display: grid; place-items: center;
+  border-radius: 7px; background: var(--g-wordscapes); color: var(--on-color);
+  font-family: var(--f-display); font-weight: 700; font-size: clamp(0.95rem, 4.8vw, 1.4rem); line-height: 1;
+  box-shadow: 0 6px 14px rgb(0 0 0 / 0.2); transform-origin: 0 0;
+}
+
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .wsc-fly { background: color-mix(in srgb, var(--g-wordscapes) 62%, #000); } }
+:root[data-theme="dark"] .wsc-fly { background: color-mix(in srgb, var(--g-wordscapes) 62%, #000); }
+
+/* the word being spelled, in a bubble */
+.game-wordscapes .wsc-word-wrap { position: relative; display: grid; place-items: center; min-height: 46px; }
+.game-wordscapes .wsc-word {
+  display: inline-flex; align-items: center; gap: 1px; min-height: 42px; padding: 0 16px; border-radius: 99px;
+  font-size: 1.55rem; letter-spacing: 0.1em; line-height: 1;
+}
+.game-wordscapes .wsc-word.on { background: var(--wsc-fill); color: var(--on-color); box-shadow: 0 3px 0 var(--wsc-deep); }
+.game-wordscapes .wsc-word .lt { display: inline-block; }
+.game-wordscapes .wsc-word .lt.in { animation: wsc-letter-in 0.24s cubic-bezier(0.3, 1.5, 0.5, 1); }
+@keyframes wsc-letter-in { 0% { transform: translateY(6px) scale(0.5); opacity: 0; } }
+.game-wordscapes .wsc-ghost { position: absolute; left: 50%; top: 2px; translate: -50% 0; pointer-events: none; background: var(--wsc-fill); color: var(--on-color); }
+.game-wordscapes .wsc-ghost.bad { background: var(--bad); animation: wsc-shake 0.35s ease, wsc-out 0.25s ease 0.35s forwards; }
+.game-wordscapes .wsc-ghost.fade { animation: wsc-out 0.45s ease forwards; }
+.game-wordscapes .wsc-ghost.bonus { background: var(--mark); color: #1b2233; animation: wsc-bonus 0.6s cubic-bezier(0.5, 0, 0.75, 0) forwards; }
+@keyframes wsc-shake { 20%, 60% { transform: translateX(-7px); } 40%, 80% { transform: translateX(7px); } }
+@keyframes wsc-out { to { opacity: 0; transform: translateY(-6px) scale(0.92); } }
+@keyframes wsc-bonus { 30% { transform: scale(1.08); opacity: 1; } 100% { transform: translate(90px, 60px) scale(0.3); opacity: 0; } }
+.game-wordscapes .wsc-bubble {
+  position: absolute; left: 50%; top: -8px; pointer-events: none; white-space: nowrap;
+  font-family: var(--f-display); font-weight: 700; font-size: 1rem; padding: 2px 12px; border-radius: 99px;
+  color: #1b2233; background: var(--mark);
+  animation: wsc-bubble 1s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+@keyframes wsc-bubble { 0% { transform: translate(-50%, 12px) scale(0.6); opacity: 0; } 20% { transform: translate(-50%, -8px) scale(1.05); opacity: 1; } 70% { opacity: 1; } 100% { transform: translate(-50%, -28px); opacity: 0; } }
+
+/* the dial, with shuffle on one side and the count on the other */
+.game-wordscapes .wsc-wheel-wrap { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
+.game-wordscapes .wsc-shuffle { justify-self: end; width: 48px; height: 48px; color: var(--ink); box-shadow: var(--shadow); }
+.game-wordscapes .wsc-shuffle svg { width: 24px; height: 24px; }
+.game-wordscapes .wsc-shuffle:active { transform: scale(0.92); }
+.game-wordscapes .wsc-count { justify-self: start; display: grid; gap: 0; line-height: 1.1; color: var(--muted); font-size: 0.8rem; }
+.game-wordscapes .wsc-count b { font-family: var(--f-display); font-size: 1.7rem; color: var(--ink); line-height: 1; }
+.game-wordscapes .wsc-count small { font-size: 0.95rem; color: var(--muted); }
+.game-wordscapes .wsc-count em { font-style: normal; font-weight: 700; color: var(--wsc-deep); }
+.game-wordscapes .wsc-count.bump em { display: inline-block; animation: wsc-bump 0.5s cubic-bezier(0.3, 1.7, 0.5, 1) 0.35s backwards; }
+@keyframes wsc-bump { 0% { transform: scale(1.5); } }
+
+.game-wordscapes .wsc-wheel {
+  width: min(58vw, 224px, 30svh); border-radius: 50%;
+  background: radial-gradient(circle at 50% 38%, var(--surface) 30%, color-mix(in srgb, var(--g) 14%, var(--surface)));
+  border: 2.5px solid var(--wsc-rim);
+  box-shadow: 0 5px 0 -1px color-mix(in srgb, var(--g) 22%, transparent), var(--shadow);
+}
+/* the lens ring, which turns when the letters orbit */
+.game-wordscapes .wsc-wheel::before {
+  content: ''; position: absolute; inset: 13%; border-radius: 50%; pointer-events: none;
+  border: 1.5px dashed color-mix(in srgb, var(--g) 35%, var(--line));
+}
+.game-wordscapes .wsc-wheel.spin::before { animation: wsc-ring 0.75s cubic-bezier(0.45, 0, 0.2, 1); }
+@keyframes wsc-ring { to { transform: rotate(120deg); } }
+.game-wordscapes .wsc-lines { overflow: visible; }
+.game-wordscapes .wsc-trail { fill: none; stroke: var(--g); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; opacity: 0.6; }
+
+.game-wordscapes .wsc-key {
+  left: 50%; top: 50%; width: 24%; background: none;
+  transform: translate(-50%, -50%) rotate(var(--wsc-a)) translateY(-146%) rotate(calc(-1 * var(--wsc-a)));
+  transition: --wsc-a 0.65s cubic-bezier(0.45, 0, 0.2, 1.08);
+}
+.game-wordscapes .wsc-key.on { background: none; }
+.game-wordscapes .wsc-key span {
+  display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%;
+  font-family: var(--f-display); font-weight: 700; font-size: clamp(1.3rem, 7vw, 1.9rem); line-height: 1;
+}
+@media (hover: hover) { .game-wordscapes .wsc-key:hover span { background: color-mix(in srgb, var(--g) 12%, transparent); } }
+.game-wordscapes .wsc-key.on span { background: var(--wsc-fill); color: var(--on-color); box-shadow: 0 3px 0 var(--wsc-deep); }
+.game-wordscapes .wsc-key.pick span { animation: wsc-pick 0.28s cubic-bezier(0.3, 1.7, 0.5, 1); }
+@keyframes wsc-pick { 0% { transform: scale(0.75); } 55% { transform: scale(1.18); } }
+.game-wordscapes .wsc-key:focus-visible { outline: none; }
+.game-wordscapes .wsc-key:focus-visible span { outline: 3px solid var(--mark); outline-offset: 1px; }
+.game-wordscapes .wsc-key:disabled { cursor: default; }
