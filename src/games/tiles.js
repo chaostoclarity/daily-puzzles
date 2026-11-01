@@ -30,7 +30,7 @@ const describe = (t) => Object.entries(t).filter(([, v]) => v).map(([k, v]) => `
 
 export default {
   id: 'tiles',
-  name: 'Toles',
+  name: 'Tiles',
   tagline: 'Match designs to clear the board',
   generate: generateTiles,
   rules: [

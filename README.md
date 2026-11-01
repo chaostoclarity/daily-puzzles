@@ -5,17 +5,17 @@ Twenty-five daily puzzle games in one web app. Every puzzle is generated in the 
 | Game | Plays like | Easy | Medium | Hard |
 |---|---|---|---|---|
 | Zap | Zip | 5x5, many numbers | 6x6, a few walls | 7x7, fewer numbers, more walls |
-| Queins | Queens | 7x7 | 8x8 | 10x10, no conflict highlights |
+| Queens | Queens | 7x7 | 8x8 | 10x10, no conflict highlights |
 | Wand | Wend | 5x5, words of 3 to 6 letters | 6x6, 4 to 8 letters | 7x7, 4 to 9 letters |
 | Crissclimb | Crossclimb | 3 rungs in order | 5 rungs, scrambled | 6 rungs, scrambled, synonym clues |
 | Werdle | Wordle | 4 letters | 5 letters | 5 letters, less common, hints must be reused |
-| The Mino | The Mini | 4x4 | 5x5 | 5x5, rarer words, synonym clues |
+| Mini Crossword | The Mini | 4x4 | 5x5 | 5x5, rarer words, synonym clues |
 | Spilling Bee | Spelling Bee | common words only | everyday dictionary | big dictionary; no timer, Genius solves |
 | Pile-Up Pokar | Pile-Up Poker | 4x4, next deal shown | 4x4, 36-card deck | 5x5 Pro: full deck plus joker, 5-card hands |
 | Trivia | daily trivia | easy questions | medium | hard |
 | Sudoku | Sudoku | 40 givens | 32 givens | about 26 givens, still one answer |
 | Pops | Pips | 5 dominoes | 7 dominoes, more inequalities | 9 dominoes, more open squares |
-| Toles | Tiles | 4x4, two layers | 5x4, three layers | 6x5, three layers, more designs |
+| Tiles | Tiles | 4x4, two layers | 5x4, three layers | 6x5, three layers, more designs |
 | Litter Boxed | Letter Boxed | target 6 words | target 5 | target 4, rarer letters |
 | Cannections | Connections | everyday categories | one FIRE ___ style group | rarer words, up to two pattern groups |
 | Strends | Strands | 5x6 grid | 6x7 | 6x8, wider word pool |
@@ -73,4 +73,4 @@ Any static host works too: upload `dist/index.html`.
 
 Rebuild words and clues with `npm run data`. Trivia comes from `scripts/fetch-trivia.py`.
 
-Game names are one-letter twists on the originals so they're easy to recognize, and the site asks search engines not to index it. They are not affiliated with LinkedIn or The New York Times.
+Where the original name is a common puzzle term (Queens, Tiles, Mini Crossword, Sudoku, Trivia), the app uses it as is. Branded names get a one-letter twist so they're easy to recognize, and the site asks search engines not to index it. They are not affiliated with LinkedIn or The New York Times.

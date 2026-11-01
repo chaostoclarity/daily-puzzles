@@ -3,7 +3,7 @@ import { generateMini } from '../gen/mini.js';
 
 export default {
   id: 'mini',
-  name: 'The Mino',
+  name: 'Mini Crossword',
   tagline: 'A small grid with dictionary clues',
   generate: generateMini,
   rules: [
