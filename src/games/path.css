@@ -1,0 +1,77 @@
+/* ---------- Zap ----------
+   The bold thing: a live wire. The line is a glowing tube with a bright core that grows smoothly
+   square by square, with a spark riding its tip. Numbers light up as the wire reaches them and the
+   next one waits with a soft pulse. Walls are solid bars. The win sends a bolt of light down the
+   whole wire from 1 to the end, lighting each number as it passes. */
+
+.game-path .path-board { width: min(100%, 440px); }
+.game-path .path-grid {
+  border-width: 3px; border-radius: 12px;
+  box-shadow: 0 1px 0 var(--line), 0 14px 28px -16px rgb(27 34 51 / 0.45);
+}
+.game-path .path-svg { inset: 3px; width: calc(100% - 6px); height: calc(100% - 6px); overflow: visible; }
+.game-path .path-cell { transition: background-color 0.22s ease; }
+.game-path .path-cell.on { background: color-mix(in srgb, var(--g) 14%, var(--surface)); }
+.game-path .path-cell.head { background: color-mix(in srgb, var(--g) 24%, var(--surface)); }
+
+/* walls: solid bars centered on the grid line, with rounded ends */
+.game-path .path-cell.wall-r { border-right: 1px solid var(--line); }
+.game-path .path-cell.wall-b { border-bottom: 1px solid var(--line); }
+.game-path .path-cell.wall-r::after, .game-path .path-cell.wall-b::before {
+  content: ''; position: absolute; z-index: 3; background: var(--ink); border-radius: 4px; pointer-events: none;
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.15);
+}
+.game-path .path-cell.wall-r::after { top: -3px; bottom: -3px; right: -4.5px; width: 8px; }
+.game-path .path-cell.wall-b::before { left: -3px; right: -3px; bottom: -4.5px; height: 8px; }
+
+/* the wire */
+.game-path .path-glow, .game-path .path-line, .game-path .path-core, .game-path .path-pulse {
+  fill: none; stroke-linecap: round; stroke-linejoin: round;
+}
+.game-path .path-glow { stroke: var(--g); stroke-width: 0.62; opacity: 0.2; }
+.game-path .path-line { stroke: var(--g); stroke-width: 0.36; opacity: 1; }
+.game-path .path-core { stroke: #fff; stroke-width: 0.07; opacity: 0.42; }
+.game-path .path-pulse { stroke: #fff; stroke-width: 0.24; opacity: 0; }
+/* the spark at the tip: a bright point with a slow ring breathing out of it while you draw */
+.game-path .path-spark { fill: #fff; opacity: 0; transition: opacity 0.2s ease; }
+.game-path .path-ring { fill: none; stroke: var(--g); stroke-width: 0.06; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.game-path .path-svg.live .path-spark { opacity: 0.95; }
+.game-path .path-svg.live .path-ring { animation: path-ring 1.6s ease-out infinite; }
+@keyframes path-ring { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(2); opacity: 0; } }
+
+/* number discs: ink until the wire reaches them, then they light up in the wire's color */
+.game-path .path-stop {
+  font-variant-numeric: lining-nums; width: 64%;
+  box-shadow: 0 2px 0 rgb(0 0 0 / 0.18);
+  transition: background-color 0.2s ease, color 0.2s ease;
+  --lit: var(--on-color);
+}
+.game-path .path-stop.hit { background: var(--g); color: var(--lit); box-shadow: 0 0 0 3px color-mix(in srgb, var(--g) 30%, transparent); }
+.game-path .path-stop.reach { animation: path-reach 0.45s cubic-bezier(0.3, 1.8, 0.5, 1); }
+@keyframes path-reach { 0% { transform: scale(0.8); } 50% { transform: scale(1.22); } }
+/* the next number to reach: a ring breathes around it */
+.game-path .path-stop.due { animation: path-next 1.8s ease-out infinite; }
+@keyframes path-next {
+  0% { box-shadow: 0 2px 0 rgb(0 0 0 / 0.18), 0 0 0 0 color-mix(in srgb, var(--g) 70%, transparent); }
+  70%, 100% { box-shadow: 0 2px 0 rgb(0 0 0 / 0.18), 0 0 0 10px color-mix(in srgb, var(--g) 0%, transparent); }
+}
+/* tapping off the start: the 1 nudges you toward it */
+.game-path .path-stop.nudge { animation: path-nudge 0.5s ease; }
+@keyframes path-nudge { 20%, 60% { transform: scale(1.18) rotate(-8deg); } 40%, 80% { transform: scale(1.18) rotate(8deg); } }
+
+/* a move into a wall or out of order: the square flinches red */
+.game-path .path-cell.nope { animation: path-nope 0.45s ease; }
+@keyframes path-nope { 0%, 35% { background-color: color-mix(in srgb, var(--bad) 22%, var(--surface)); } }
+/* a hint: the square it added glows highlighter yellow */
+.game-path .path-cell.hinted { animation: path-hint 1.1s ease-out; }
+@keyframes path-hint { 0%, 30% { background-color: color-mix(in srgb, var(--mark) 65%, var(--surface)); } }
+
+/* the win: the squares flash as the bolt passes, and each number pops */
+.game-path .path-grid.zapping .path-cell { animation: path-pass 0.6s ease-out var(--pd, 0ms) backwards; }
+@keyframes path-pass { 0% { background-color: color-mix(in srgb, var(--g) 14%, var(--surface)); } 25% { background-color: color-mix(in srgb, var(--g) 34%, var(--surface)); } }
+.game-path .path-stop.zapped { animation: path-reach 0.5s cubic-bezier(0.3, 1.8, 0.5, 1) var(--pd, 0ms); }
+.game-path .board.solved .path-glow { opacity: 0.32; transition: opacity 0.8s ease 0.6s; }
+
+/* dark theme: dark numerals on the lit discs read better than white */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .game-path .path-stop { --lit: var(--paper); } }
+:root[data-theme="dark"] .game-path .path-stop { --lit: var(--paper); }
