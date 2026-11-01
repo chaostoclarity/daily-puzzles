@@ -1,0 +1,88 @@
+/* ---------- Wand ----------
+   The one bold thing: the wand's stroke. Tracing draws a glowing rounded path between letters
+   with a bright spark riding the tip. A found word paints its letters in its own color one
+   after another, its path draws in, and the letters fly down into the word's slot. Blocked
+   squares are pencil-hatched like a notebook margin. Winning sends a shimmer across the board
+   and bounces the slots in turn. */
+.game-weave {
+  --wv-trail: color-mix(in srgb, var(--g) 60%, var(--surface));
+  gap: 10px;
+}
+.game-weave .wv-current { display: flex; justify-content: center; align-items: center; min-height: 2.4rem; font-size: 1.7rem; letter-spacing: 0.1em; }
+.game-weave .wv-current .lt { display: inline-block; }
+.game-weave .wv-current .lt.in { animation: wv-letter 0.22s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes wv-letter { 0% { transform: translateY(8px) scale(0.5); opacity: 0; } }
+.game-weave .wv-current .ph { color: var(--muted); opacity: 0.7; font-family: var(--f-body); font-weight: 400; font-size: 1rem; letter-spacing: 0; animation: wv-fade 0.3s ease 0.15s backwards; }
+@keyframes wv-fade { from { opacity: 0; } }
+.game-weave .wv-current.bad .lt { color: var(--bad); }
+.game-weave .wv-current.bad { animation: shake 0.35s ease, wv-out 0.2s ease 0.32s forwards; }
+@keyframes wv-out { to { opacity: 0; } }
+
+.game-weave .weave-board { width: min(100%, 400px, calc((100svh - 330px) * var(--c) / var(--r))); min-width: 240px; }
+.game-weave .weave-cell {
+  margin: 10%; border-width: 2px; font-size: clamp(1.1rem, 5.6vw, 1.7rem);
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.game-weave .weave-cell:not(.block):not(.found):not(.sel) { box-shadow: 0 2px 0 var(--line); }
+.game-weave .wv-l { position: relative; z-index: 1; line-height: 1; }
+/* blocked squares: pencil hatching */
+.game-weave .weave-cell.block {
+  margin: 7%; border-radius: 7px; border: 1.5px solid var(--line);
+  background-color: var(--soft);
+  background-image: repeating-linear-gradient(-45deg, transparent 0 5px, color-mix(in srgb, var(--muted) 30%, transparent) 5px 6.5px);
+}
+.game-weave .weave-cell.sel { background: var(--g); border-color: var(--g); color: var(--on-color); }
+.game-weave .weave-cell.found { border-color: transparent; color: var(--ink); }
+.game-weave .weave-cell.hinted:not(.sel) { box-shadow: 0 0 0 3px var(--mark); border-color: var(--mark); }
+.game-weave .weave-cell.pick { animation: wv-pick 0.28s cubic-bezier(0.3, 1.7, 0.5, 1); }
+@keyframes wv-pick { 0% { transform: scale(0.82); } }
+/* painting: each letter of a found word swells as the color reaches it */
+.game-weave .weave-cell::before { content: ''; position: absolute; inset: -2px; border-radius: 50%; background: var(--g); opacity: 0; pointer-events: none; }
+.game-weave .weave-cell.paint { animation: wv-paint 0.55s cubic-bezier(0.3, 1.6, 0.5, 1) backwards; animation-delay: calc(var(--k, 0) * 50ms); }
+.game-weave .weave-cell.paint::before { animation: wv-flash 0.5s ease-out backwards; animation-delay: calc(var(--k, 0) * 50ms); }
+@keyframes wv-paint { 0% { transform: scale(1); } 40% { transform: scale(1.2) rotate(-6deg); } 75% { transform: scale(0.97) rotate(2deg); } }
+@keyframes wv-flash { 0% { opacity: 1; } 100% { opacity: 0; } }
+.game-weave .weave-cell.nope { background: color-mix(in srgb, var(--bad) 22%, var(--surface)); border-color: var(--bad); color: var(--ink); animation: wv-nope 0.4s ease; }
+@keyframes wv-nope { 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+.game-weave .weave-cell.hint-in { animation: wv-hint 0.65s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes wv-hint { 0% { box-shadow: 0 0 0 14px rgb(243 193 27 / 0); transform: scale(0.85); } 50% { box-shadow: 0 0 0 5px rgb(243 193 27 / 1); transform: scale(1.12); } }
+
+/* paths */
+.game-weave .weave-line { stroke-width: 0.42; }
+.game-weave .weave-line.draw { stroke-dasharray: 1 1; stroke-dashoffset: 1; animation: wv-draw 0.5s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
+@keyframes wv-draw { to { stroke-dashoffset: 0; } }
+.game-weave .weave-line.sel { stroke: var(--wv-trail); stroke-width: 0.24; }
+.game-weave .wv-tip { stroke: var(--wv-trail); stroke-width: 0.24; stroke-linecap: round; opacity: 0; }
+.game-weave .wv-tip.go { opacity: 1; stroke-dasharray: 1 1; stroke-dashoffset: 1; animation: wv-draw 0.14s ease-out forwards; }
+/* the spark at the wand's tip: a halo around the newest letter, flaring as it lands */
+.game-weave .wv-spark { fill: none; stroke: var(--mark); stroke-width: 0.075; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.game-weave .wv-spark.on { opacity: 0.95; }
+.game-weave .wv-spark.on.jump { animation: wv-spark 0.38s ease-out; }
+@keyframes wv-spark { 0% { transform: scale(1.35); opacity: 0; stroke-width: 0.16; } 100% { transform: scale(1); opacity: 0.95; } }
+
+/* footer: progress and Clear on one line, then the slots */
+.game-weave .wv-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: min(100%, 400px); margin: 0 auto; }
+.game-weave .wv-status { text-align: left; min-height: 0; font-size: 0.92rem; }
+.game-weave .weave-slots { gap: 10px 16px; padding: 4px 0 2px; }
+.game-weave .weave-slot span { width: 25px; height: 30px; border-radius: 4px 4px 0 0; transition: background-color 0.2s; }
+.game-weave .weave-slot.found span { border-radius: 4px; }
+.game-weave .weave-slot.found span.landing { background: transparent; color: transparent; border-bottom-color: var(--line); border-radius: 4px 4px 0 0; }
+.game-weave .weave-slot span.land { animation: wv-land 0.4s cubic-bezier(0.3, 1.8, 0.5, 1); }
+@keyframes wv-land { 0% { transform: translateY(5px) scale(0.7); } 50% { transform: translateY(-3px) scale(1.15); } }
+.game-weave .weave-slots.wv-win .weave-slot { animation: wv-hop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) backwards; animation-delay: calc(var(--n) * 80ms + 300ms); }
+@keyframes wv-hop { 40% { transform: translateY(-8px); } }
+
+/* the flying letters */
+.game-weave .wv-fly {
+  position: fixed; left: 0; top: 0; z-index: 40; pointer-events: none;
+  display: grid; place-items: center; width: 28px; height: 30px; border-radius: 6px;
+  background: var(--w); color: var(--ink); box-shadow: 0 6px 14px rgb(10 14 22 / 0.2);
+  font-family: var(--f-display); font-weight: 700; font-size: 1.2rem;
+}
+
+/* win: a shimmer crosses the board diagonally */
+.game-weave .board.solved { animation: none; }
+.game-weave .board.wv-win .weave-cell:not(.block) { animation: wv-wave 0.6s cubic-bezier(0.3, 1.5, 0.5, 1) backwards; animation-delay: calc((var(--row) + var(--col)) * 45ms); }
+.game-weave .board.wv-win .weave-cell:not(.block)::before { background: #fff; animation: wv-glint 0.6s ease-out backwards; animation-delay: calc((var(--row) + var(--col)) * 45ms); }
+@keyframes wv-wave { 35% { transform: translateY(-6px) scale(1.12); } }
+@keyframes wv-glint { 0% { opacity: 0; } 30% { opacity: 0.55; } 100% { opacity: 0; } }

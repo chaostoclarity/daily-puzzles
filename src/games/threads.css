@@ -1,0 +1,79 @@
+/* ---------- Strends ----------
+   The one bold thing: the thread. Tracing lays a thick rounded stroke in the game's color from
+   letter to letter, its newest stretch drawing out as you go. A found word's thread draws itself
+   in while its letters lock one by one; the span sweeps across in highlighter yellow. A wrong
+   word flashes red and shakes off. Winning ripples through the whole board. */
+.game-threads {
+  --th-sel: var(--g);
+  --th-theme: color-mix(in srgb, var(--g) 30%, var(--surface));
+  --th-span: color-mix(in srgb, var(--mark) 78%, var(--surface));
+  --th-thread: color-mix(in srgb, var(--g) 55%, var(--surface));
+  gap: 10px;
+}
+.game-threads .th-theme { min-height: 0; padding: 9px 14px; font-size: 0.98rem; line-height: 1.38; }
+
+/* the traced word */
+.game-threads .th-current {
+  display: flex; justify-content: center; align-items: center; min-height: 2.4rem; font-size: 1.7rem; letter-spacing: 0.1em;
+}
+.game-threads .th-current .lt { display: inline-block; }
+.game-threads .th-current .lt.in { animation: th-letter 0.22s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes th-letter { 0% { transform: translateY(8px) scale(0.5); opacity: 0; } }
+.game-threads .th-current .ph { color: var(--muted); opacity: 0.7; font-family: var(--f-body); font-weight: 400; font-size: 1rem; letter-spacing: 0; animation: th-fade 0.3s ease 0.15s backwards; }
+@keyframes th-fade { from { opacity: 0; } }
+.game-threads .th-current.bad .lt { color: var(--bad); }
+.game-threads .th-current.bad { animation: shake 0.35s ease, th-out 0.2s ease 0.32s forwards; }
+@keyframes th-out { to { opacity: 0; } }
+
+/* the board fits between the theme and the footer on short phones */
+.game-threads .threads-board { width: min(100%, 372px, calc((100svh - 300px) * var(--c) / var(--r))); min-width: 230px; }
+.game-threads .weave-cell {
+  margin: 10%; border-width: 2px; font-size: clamp(1.1rem, 5.6vw, 1.65rem);
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.game-threads .th-l { display: block; line-height: 1; }
+.game-threads .weave-cell:not(.found):not(.sel) { box-shadow: 0 2px 0 var(--line); }
+.game-threads .weave-cell.sel { background: var(--th-sel); border-color: var(--th-sel); color: var(--on-color); }
+.game-threads .weave-cell.found { border-color: transparent; color: var(--ink); }
+.game-threads .weave-cell.found.theme { background: var(--th-theme); }
+.game-threads .weave-cell.found.span { background: var(--th-span); color: #1b2233; }
+.game-threads .weave-cell.hinted:not(.sel) { box-shadow: 0 0 0 3px var(--mark); border-color: var(--mark); }
+.game-threads .weave-cell.pick { animation: th-pick 0.28s cubic-bezier(0.3, 1.7, 0.5, 1); }
+@keyframes th-pick { 0% { transform: scale(0.82); } }
+.game-threads .weave-cell.lock { animation: th-lock 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) backwards; animation-delay: calc(var(--k, 0) * 45ms); }
+@keyframes th-lock { 0% { transform: scale(1); } 40% { transform: scale(1.2); } }
+/* the flash of the trace color as a letter locks in: an overlay fading out (colors themselves don't animate) */
+.game-threads .th-l { position: relative; z-index: 1; }
+.game-threads .weave-cell::before { content: ''; position: absolute; inset: -2px; border-radius: 50%; background: var(--th-sel); opacity: 0; pointer-events: none; }
+.game-threads .weave-cell.lock::before { animation: th-flash 0.5s ease-out backwards; animation-delay: calc(var(--k, 0) * 45ms); }
+.game-threads .weave-cell.sweep::before { animation: th-flash 0.75s ease-out backwards; animation-delay: calc(var(--col, 0) * 70ms); }
+@keyframes th-flash { 0% { opacity: 1; } 100% { opacity: 0; } }
+.game-threads .weave-cell.sweep { animation: th-sweep 0.75s cubic-bezier(0.3, 1.4, 0.5, 1) backwards; animation-delay: calc(var(--col, 0) * 70ms); }
+@keyframes th-sweep {
+  0% { transform: scale(1) rotate(0); box-shadow: 0 0 0 0 rgb(243 193 27 / 0.7); }
+  35% { transform: scale(1.24) rotate(-8deg); box-shadow: 0 0 0 7px rgb(243 193 27 / 0.45); }
+  70% { transform: scale(0.96) rotate(3deg); box-shadow: 0 0 0 12px rgb(243 193 27 / 0); }
+}
+.game-threads .weave-cell.nope { background: color-mix(in srgb, var(--bad) 22%, var(--surface)); border-color: var(--bad); color: var(--ink); animation: th-nope 0.4s ease; }
+@keyframes th-nope { 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+.game-threads .weave-cell.hint-in { animation: th-hint 0.65s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes th-hint { 0% { box-shadow: 0 0 0 14px rgb(243 193 27 / 0); transform: scale(0.85); } 50% { box-shadow: 0 0 0 5px rgb(243 193 27 / 1); transform: scale(1.12); } }
+
+/* threads: found ones sit behind the letters as broad bands, the traced one is a firm stroke */
+.game-threads .weave-line { stroke-width: 0.46; }
+.game-threads .weave-line.theme { stroke: var(--th-theme); }
+.game-threads .weave-line.span { stroke: var(--th-span); }
+.game-threads .weave-line.draw { stroke-dasharray: 1 1; stroke-dashoffset: 1; animation: th-draw 0.45s cubic-bezier(0.5, 0, 0.3, 1) forwards; }
+@keyframes th-draw { to { stroke-dashoffset: 0; } }
+.game-threads .weave-line.sel { stroke: var(--th-thread); stroke-width: 0.26; }
+.game-threads .th-tip { stroke: var(--th-thread); stroke-width: 0.26; stroke-linecap: round; opacity: 0; }
+.game-threads .th-tip.go { opacity: 1; stroke-dasharray: 1 1; stroke-dashoffset: 1; animation: th-draw 0.14s ease-out forwards; }
+
+/* win: a ripple runs from the top-left corner through every letter */
+.game-threads .board.solved { animation: none; }
+.game-threads .board.th-win .weave-cell { animation: th-wave 0.6s cubic-bezier(0.3, 1.5, 0.5, 1) backwards; animation-delay: calc((var(--row) + var(--col)) * 45ms); }
+@keyframes th-wave { 35% { transform: translateY(-7px) scale(1.14); } }
+
+/* footer: progress and Clear on one line */
+.game-threads .th-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: min(100%, 372px); margin: 0 auto; }
+.game-threads .th-status { text-align: left; min-height: 0; font-size: 0.92rem; }

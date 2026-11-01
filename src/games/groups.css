@@ -1,0 +1,102 @@
+/* ---------- Cannections ----------
+   The one bold thing: the words are index cards. Each has a ruled header line and a paper lip
+   that presses down under a finger; picked cards lift and turn to ink. A guess is read out as
+   a hop across the four cards; a right one swaps into the top row, takes its color and folds
+   into the group's bar; a wrong one shakes. The win runs a shine down the four bars. */
+.game-groups {
+  --grp-h: clamp(70px, 22vw, 90px);
+  --grp-lip: color-mix(in srgb, var(--line) 85%, var(--ink));
+  --grp-rule: color-mix(in srgb, var(--g) 30%, var(--surface));
+  --grp-on: #1b2233;
+  gap: 16px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .game-groups { --grp-on: #f2f4f8; --grp-lip: color-mix(in srgb, var(--line) 60%, #000); } }
+:root[data-theme="dark"] .game-groups { --grp-on: #f2f4f8; --grp-lip: color-mix(in srgb, var(--line) 60%, #000); }
+.game-groups .grp-board { width: 100%; display: grid; gap: 8px; }
+.game-groups .grp-found { gap: 8px; }
+.game-groups .grp-found:empty { display: none; }
+.game-groups .grp-grid { gap: 8px; }
+
+/* the card */
+.game-groups .grp-word {
+  min-height: var(--grp-h); padding: 6px 4px 4px;
+  display: grid; place-items: center;
+  background-color: var(--surface);
+  background-image: linear-gradient(to bottom, transparent 11px, var(--grp-rule) 11px, var(--grp-rule) 12.5px, transparent 12.5px);
+  border: 1px solid var(--line); border-radius: 9px; color: var(--ink);
+  box-shadow: 0 3px 0 var(--grp-lip), 0 6px 14px -6px rgb(27 34 51 / 0.18);
+  font-family: var(--f-body); font-weight: 700; letter-spacing: 0.03em;
+  transition: transform 0.2s cubic-bezier(0.3, 1.6, 0.5, 1), box-shadow 0.2s ease, background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.game-groups .grp-label { display: block; max-width: 100%; }
+@media (hover: hover) { .game-groups .grp-word:hover:not(.on):not(:disabled) { transform: translateY(-1px); border-color: color-mix(in srgb, var(--ink) 35%, var(--line)); } }
+.game-groups .grp-word:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--grp-lip), 0 2px 6px -4px rgb(27 34 51 / 0.2); transition-duration: 0.06s; }
+.game-groups .grp-word.on {
+  background-color: var(--ink); background-image: none; color: var(--paper); border-color: var(--ink);
+  transform: translateY(-4px);
+  box-shadow: 0 4px 0 color-mix(in srgb, var(--ink) 70%, var(--g)), 0 12px 20px -8px rgb(10 14 22 / 0.45);
+}
+.game-groups .grp-word.on:active { transform: translateY(-1px); }
+.game-groups .grp-word:focus-visible { outline: 3px solid var(--mark); outline-offset: 2px; }
+.game-groups .grp-word.nope { background-color: color-mix(in srgb, var(--bad) 16%, var(--surface)); border-color: var(--bad); color: var(--ink); background-image: none; }
+.game-groups .grp-word.nope.shake { animation: grp-shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+@keyframes grp-shake { 15%, 55% { transform: translateX(-7px) rotate(-1.5deg); } 35%, 75% { transform: translateX(7px) rotate(1.5deg); } }
+/* a solved group's cards take on its color just before they fold into the bar */
+.game-groups .grp-word.merge {
+  background-image: none; color: var(--grp-on); border-color: transparent; transform: none;
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--lvc) 70%, #000);
+  transition-duration: 0.3s; transition-delay: 0.12s;
+}
+.game-groups .grp-word.merge.lv0 { --lvc: var(--lv0); background-color: var(--lv0); }
+.game-groups .grp-word.merge.lv1 { --lvc: var(--lv1); background-color: var(--lv1); }
+.game-groups .grp-word.merge.lv2 { --lvc: var(--lv2); background-color: var(--lv2); }
+.game-groups .grp-word.merge.lv3 { --lvc: var(--lv3); background-color: var(--lv3); }
+
+/* hint tag: a colored pin in the card's corner */
+.game-groups .grp-tag { top: 4px; right: 5px; width: 11px; height: 11px; box-shadow: 0 0 0 1.5px var(--surface), 0 0 0 3px var(--ink); }
+.game-groups .grp-word.on .grp-tag { box-shadow: 0 0 0 1.5px var(--ink), 0 0 0 3px var(--paper); }
+.game-groups .grp-tag.new { animation: grp-pin 0.55s cubic-bezier(0.3, 1.8, 0.4, 1); }
+@keyframes grp-pin { 0% { transform: scale(0) translateY(-10px); } 60% { transform: scale(1.5); } }
+
+/* the group bar: same height as a row of cards, so the grid doesn't jump when one folds up */
+.game-groups .grp-bar {
+  --lvc: var(--lv0);
+  min-height: var(--grp-h); align-content: center; position: relative; overflow: hidden;
+  border-radius: 9px; padding: 8px 12px; animation: none;
+  box-shadow: 0 3px 0 color-mix(in srgb, var(--lvc) 68%, #000);
+}
+.game-groups .grp-bar.lv1 { --lvc: var(--lv1); }
+.game-groups .grp-bar.lv2 { --lvc: var(--lv2); }
+.game-groups .grp-bar.lv3 { --lvc: var(--lv3); }
+.game-groups .grp-bar b { font-size: 1.12rem; line-height: 1.2; }
+.game-groups .grp-bar span { font-weight: 700; font-size: 0.82rem; letter-spacing: 0.06em; opacity: 0.85; }
+/* folds in from the four cards: squeezed sideways, then springs out to full width */
+.game-groups .grp-bar.snap { animation: grp-snap 0.5s cubic-bezier(0.25, 1.5, 0.45, 1); }
+.game-groups .grp-bar.snap > * { animation: grp-text 0.4s ease 0.1s backwards; }
+@keyframes grp-snap { 0% { transform: scale(0.94, 0.88); } 55% { transform: scale(1.025, 1.06); } }
+@keyframes grp-text { from { opacity: 0; transform: translateY(6px); } }
+/* revealed groups drop in one after another */
+.game-groups .grp-bar.drop { animation: grp-drop 0.5s cubic-bezier(0.25, 1.4, 0.45, 1) backwards; animation-delay: calc(var(--i) * 140ms + 120ms); }
+@keyframes grp-drop { 0% { transform: translateY(-18px) scale(0.96); opacity: 0; } }
+/* win: the bars bounce in a quick cascade and a shine runs down through them */
+.game-groups .grp-found.win .grp-bar { animation: grp-cheer 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) backwards; animation-delay: calc(var(--n, 0) * 90ms + 60ms); }
+.game-groups .grp-found.win .grp-bar:nth-child(1) { --n: 0; } .game-groups .grp-found.win .grp-bar:nth-child(2) { --n: 1; }
+.game-groups .grp-found.win .grp-bar:nth-child(3) { --n: 2; } .game-groups .grp-found.win .grp-bar:nth-child(4) { --n: 3; }
+.game-groups .grp-found.win .grp-bar:last-child { animation: grp-snap 0.5s cubic-bezier(0.25, 1.5, 0.45, 1), grp-cheer 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) 0.33s backwards; }
+@keyframes grp-cheer { 40% { transform: translateY(-6px) scale(1.03); } }
+.game-groups .grp-found.win .grp-bar::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.6) 50%, transparent 65%);
+  transform: translateX(-110%); animation: grp-shine 0.9s ease forwards; animation-delay: calc(var(--n, 0) * 90ms + 200ms);
+}
+@keyframes grp-shine { to { transform: translateX(110%); } }
+
+/* mistakes: little lives that pop out when one is spent */
+.game-groups .grp-mistakes { min-height: 22px; gap: 9px; }
+.game-groups .grp-mistakes i { width: 13px; height: 13px; transition: background-color 0.2s; }
+.game-groups .grp-mistakes i.on { background: var(--g); box-shadow: 0 2px 0 color-mix(in srgb, var(--g) 60%, #000); }
+.game-groups .grp-mistakes i.gone { animation: grp-life 0.55s cubic-bezier(0.3, 1.4, 0.5, 1); }
+@keyframes grp-life { 0% { background: var(--bad); transform: scale(1.6); } 40% { background: var(--bad); transform: scale(0.7); } }
+
+@media (max-width: 360px) { .game-groups .grp-word { letter-spacing: 0; } }
