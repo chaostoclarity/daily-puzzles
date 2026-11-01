@@ -1,4 +1,6 @@
+import './flipart.css';
 import { h, put, s as svgEl } from '../lib/ui.js';
+import { calm } from '../lib/celebrate.js';
 import { generateFlipart, rotated, solvedBy } from '../gen/flipart.js';
 
 const HUES = [8, 210, 140, 45, 280, 180, 330, 95, 25, 250, 160, 60];
@@ -25,7 +27,7 @@ export default {
 
     const W = p.w + 2 * p.pad, H = p.h + 2 * p.pad;
     const svg = svgEl('svg', { class: 'fa-svg', viewBox: `0 0 ${W} ${H}`, role: 'img', 'aria-label': 'Pieces and frame' });
-    const meter = h('p', { class: 'hint-line', 'aria-live': 'polite' });
+    const meter = h('p', { class: 'hint-line fa-meter', 'aria-live': 'polite' });
     root.append(h('div', { class: 'board fa-board', style: { '--ratio': `${W} / ${H}` } }, svg), meter);
 
     const pivotAt = (x, y) => p.pieces.findIndex((pc) => pc.pivot[0] === x && pc.pivot[1] === y);
@@ -56,31 +58,108 @@ export default {
     function check() {
       if (!done && solvedBy(p, turns)) {
         done = true;
+        winFx();
         ctx.solved(`${taps} turn${taps === 1 ? '' : 's'}, par ${p.par}`, { value: taps - p.par, higher: false, fmt: (v) => (v ? `par +${v}` : 'par') });
       }
     }
 
+    // ----- the board, built once: a frame with faint squares, and each piece drawn at home -----
+    // A piece is a group turned around the center of its pivot square, so a turn swings it round.
+    const defs = svgEl('defs');
+    defs.innerHTML = `<linearGradient id="fa-shine-g" x1="0" y1="0" x2="1" y2="0.35">
+        <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.45" stop-color="#fff" stop-opacity="0"/>
+        <stop offset="0.5" stop-color="#fff" stop-opacity="0.75"/><stop offset="0.55" stop-color="#fff" stop-opacity="0"/>
+        <stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <clipPath id="fa-clip"><rect x="${p.pad}" y="${p.pad}" width="${p.w}" height="${p.h}" rx="0.12"/></clipPath>`;
+    let lines = '';
+    for (let x = 1; x < p.w; x++) lines += `M${p.pad + x} ${p.pad}v${p.h}`;
+    for (let y = 1; y < p.h; y++) lines += `M${p.pad} ${p.pad + y}h${p.w}`;
+    const frame = svgEl('rect', { class: 'fa-frame', x: p.pad, y: p.pad, width: p.w, height: p.h, rx: 0.12 });
+    const shine = svgEl('rect', { class: 'fa-shine', x: p.pad - p.w, y: p.pad, width: p.w * 3, height: p.h, fill: 'url(#fa-shine-g)' });
+    const shineWrap = svgEl('g', { 'clip-path': 'url(#fa-clip)', 'aria-hidden': 'true' });
+    shineWrap.append(shine);
+    const pieces = p.pieces.map((pc, k) => {
+      const g = svgEl('g', { class: 'fa-piece', style: `--hue:${HUES[k % HUES.length]}` });
+      const spin = svgEl('g', { class: 'fa-turn' });
+      const cx = pc.pivot[0] + p.pad + 0.5, cy = pc.pivot[1] + p.pad + 0.5;
+      spin.style.transformOrigin = `${cx}px ${cy}px`;
+      const own = new Set(pc.cells.map(([x, y]) => x + ',' + y));
+      const sq = pc.cells.map(([x, y]) => {
+        const c = svgEl('g', { class: 'fa-sq' });
+        c.append(svgEl('rect', { class: 'fa-cell', x: x + p.pad, y: y + p.pad, width: 1, height: 1 }),
+          svgEl('rect', { class: 'fa-stud', x: x + p.pad + 0.2, y: y + p.pad + 0.2, width: 0.6, height: 0.6, rx: 0.14 }));
+        return c;
+      });
+      // the outline runs only along the piece's outer edges, so it reads as one solid block
+      let d = '';
+      for (const [x, y] of pc.cells) {
+        const X = x + p.pad, Y = y + p.pad;
+        if (!own.has(`${x},${y - 1}`)) d += `M${X} ${Y}h1`;
+        if (!own.has(`${x},${y + 1}`)) d += `M${X} ${Y + 1}h1`;
+        if (!own.has(`${x - 1},${y}`)) d += `M${X} ${Y}v1`;
+        if (!own.has(`${x + 1},${y}`)) d += `M${X + 1} ${Y}v1`;
+      }
+      spin.append(...sq, svgEl('path', { class: 'fa-edge', d }));
+      for (const [dx, dy] of [[-0.14, -0.14], [0.14, -0.14], [-0.14, 0.14], [0.14, 0.14]]) spin.append(svgEl('circle', { class: 'fa-dot', cx: cx + dx, cy: cy + dy, r: 0.07 }));
+      g.append(spin);
+      return { g, spin, sq, angle: turns[k] * 90, shown: turns[k] };
+    });
+    put(svg, defs, frame, svgEl('path', { class: 'fa-lines', d: lines }), ...order.map((k) => pieces[k].g), shineWrap);
+    pieces.forEach((pc) => { pc.spin.style.transform = `rotate(${pc.angle}deg)`; });
+
+    // a turn swings the piece round its pivot, lifting it a little as it goes
+    function swing(pc, from, to, q) {
+      pc.spin.style.transform = `rotate(${to}deg)`;
+      if (calm() || !pc.spin.animate) return;
+      pc.spin.getAnimations().forEach((a) => a.cancel());
+      pc.g.classList.add('lift');
+      const a = pc.spin.animate([
+        { transform: `rotate(${from}deg) scale(1)` },
+        { transform: `rotate(${(from + to) / 2}deg) scale(1.07)`, offset: 0.45 },
+        { transform: `rotate(${to}deg) scale(1)` },
+      ], { duration: 280 + q * 80, easing: 'cubic-bezier(0.35, 0.6, 0.35, 1.15)' });
+      const end = () => pc.g.classList.remove('lift');
+      a.onfinish = end; a.oncancel = end;
+    }
+
+    // the win: the frame shimmers and each piece pops in turn
+    function winFx() {
+      if (calm()) return;
+      order.forEach((k, i) => pieces[k].g.style.setProperty('--i', i));
+      svg.classList.remove('win'); void svg.getBoundingClientRect(); svg.classList.add('win');
+      setTimeout(() => svg.classList.remove('win'), 1500 + order.length * 70);
+    }
+
+    let shownStats = null;
     function render() {
       const count = new Map();
       const placed = p.pieces.map((pc, k) => rotated(pc, turns[k]));
       placed.forEach((cells) => cells.forEach(([x, y]) => count.set(x + ',' + y, (count.get(x + ',' + y) || 0) + 1)));
-      const kids = [svgEl('rect', { class: 'fa-frame', x: p.pad, y: p.pad, width: p.w, height: p.h })];
-      for (const k of order) {
-        const g = svgEl('g', { class: 'fa-piece', style: `--hue:${HUES[k % HUES.length]}` });
-        for (const [x, y] of placed[k]) {
+      // keep the turned piece on top
+      const top = pieces[order[order.length - 1]].g;
+      if (shineWrap.previousSibling !== top) svg.insertBefore(top, shineWrap);
+      pieces.forEach((pc, k) => {
+        if (pc.shown !== turns[k]) {
+          const q = (((turns[k] - pc.shown) % 4) + 4) % 4; // always clockwise
+          const from = pc.angle;
+          pc.angle += q * 90; pc.shown = turns[k];
+          swing(pc, from, pc.angle, q);
+        }
+        placed[k].forEach(([x, y], i) => {
           const out = x < 0 || y < 0 || x >= p.w || y >= p.h;
           const over = count.get(x + ',' + y) > 1;
-          g.append(svgEl('rect', { class: 'fa-cell' + (out ? ' out' : over ? ' over' : ''), x: x + p.pad + 0.04, y: y + p.pad + 0.04, width: 0.92, height: 0.92, rx: 0.12 }));
-        }
-        const [px, py] = p.pieces[k].pivot;
-        for (const [dx, dy] of [[-0.14, -0.14], [0.14, -0.14], [-0.14, 0.14], [0.14, 0.14]]) g.append(svgEl('circle', { class: 'fa-dot', cx: px + p.pad + 0.5 + dx, cy: py + p.pad + 0.5 + dy, r: 0.07 }));
-        kids.push(g);
-      }
-      put(svg, kids);
+          pc.sq[i].setAttribute('class', 'fa-sq' + (out ? ' out' : over ? ' over' : ''));
+        });
+      });
       svg.classList.toggle('solved', done);
       const overlaps = [...count.values()].filter((v) => v > 1).length;
       const outside = placed.flat().filter(([x, y]) => x < 0 || y < 0 || x >= p.w || y >= p.h).length;
-      put(meter, done ? `Filled in ${taps} turn${taps === 1 ? '' : 's'} (par ${p.par})` : `${taps} turn${taps === 1 ? '' : 's'} · par ${p.par} · ${overlaps} overlapping · ${outside} outside`);
+      const stat = (v, label, key, cls = '') => h('span', { class: cls + (shownStats && shownStats[key] !== v ? ' bump' : '') }, h('b', {}, v), label);
+      put(meter, done
+        ? h('span', { class: 'fa-done' }, `Filled in ${taps} turn${taps === 1 ? '' : 's'} (par ${p.par})`)
+        : [stat(taps, ` turn${taps === 1 ? '' : 's'}`, 'taps', 'fa-turns'), h('span', { class: 'fa-par' }, `par ${p.par}`),
+          stat(overlaps, ' overlapping', 'overlaps', overlaps ? 'warn' : 'clear'), stat(outside, ' outside', 'outside', outside ? 'warn' : 'clear')]);
+      shownStats = { taps, overlaps, outside };
       ctx.save({ turns, taps, order, done });
     }
     render();

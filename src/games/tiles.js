@@ -1,4 +1,6 @@
+import './tiles.css';
 import { h, shake } from '../lib/ui.js';
+import { calm } from '../lib/celebrate.js';
 import { generateTiles, shared, LAYER_VALUES } from '../gen/tiles.js';
 
 const SHAPES = {
@@ -49,11 +51,11 @@ export default {
     const els = [];
     const grid = h('div', { class: 'tile-grid', style: { '--c': p.cols }, role: 'grid', 'aria-label': 'Tiles' });
     tiles.forEach((t, i) => {
-      const el = h('button', { class: 'tile-btn', type: 'button', onClick: () => tap(i) });
+      const el = h('button', { class: 'tile-btn', type: 'button', style: { '--i': Math.floor(i / p.cols) + (i % p.cols) }, onClick: (e) => { e.currentTarget.blur(); tap(i); } });
       els.push(el); grid.append(el);
     });
     const meter = h('div', { class: 'tile-meter', 'aria-live': 'polite' });
-    root.append(meter, h('div', { class: 'board tile-board' }, grid));
+    root.append(meter, h('div', { class: 'board tile-board', style: { '--c': p.cols, '--r': p.rows } }, grid));
 
     const empty = (t) => !Object.values(t).some(Boolean);
 
@@ -66,17 +68,35 @@ export default {
       return true;
     }
 
+    const replay = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+    // what a pair is about to lose, so the cleared designs can burst off after the tiles redraw
+    const cleared = (a, b) => { const sh = shared(tiles[a], tiles[b]); return Object.fromEntries(sh.map((k) => [k, tiles[a][k]])); };
+    function burst(a, b, lost, label) {
+      if (calm()) return;
+      for (const i of [a, b]) {
+        const el = els[i];
+        el.append(h('span', { class: 'tile-burst', 'aria-hidden': 'true', html: tileSvg(lost) }),
+          h('span', { class: 'tile-ring', 'aria-hidden': 'true', onAnimationend: (e) => e.currentTarget.remove() }));
+        replay(el, empty(tiles[i]) ? 'vanish' : 'struck');
+      }
+      setTimeout(() => [a, b].forEach((i) => els[i].querySelector('.tile-burst')?.remove()), 600);
+      if (label) els[b].append(h('span', { class: 'tile-bubble', 'aria-hidden': 'true', onAnimationend: (e) => e.currentTarget.remove() }, label));
+    }
+
     function tap(i) {
       if (done || empty(tiles[i])) return;
       if (sel === null) { sel = i; return render(); }
       if (sel === i) { sel = null; return render(); }
-      if (match(sel, i)) { sel = null; render(); return; }
+      const a = sel, lost = cleared(a, i);
+      if (match(sel, i)) { sel = null; render(); burst(a, i, lost, combo > 1 ? `Combo ${combo}` : null); return; }
       shake(els[sel]); shake(els[i]);
+      replay(els[sel], 'miss'); replay(els[i], 'miss');
       combo = 0; sel = null;
       ctx.toast('Nothing in common. Combo reset');
       render();
     }
 
+    let shown = { combo: null, best: null, left: null };
     function render() {
       tiles.forEach((t, i) => {
         const el = els[i];
@@ -87,12 +107,17 @@ export default {
         el.setAttribute('aria-label', describe(t));
       });
       const left = tiles.filter((t) => !empty(t)).length;
+      // each number bumps when it changes
+      const stat = (v, was, label, cls = '') => h('span', { class: cls }, h('b', { class: was !== null && was !== v ? 'bump' : '' }, v), label);
       meter.replaceChildren(
-        h('span', {}, h('b', {}, combo), ' combo'),
-        h('span', {}, h('b', {}, best), ' best'),
-        h('span', {}, h('b', {}, left), ' tiles left'));
+        stat(combo, shown.combo, ' combo', 'tile-combo' + (combo > 1 ? ' hot' : '')),
+        stat(best, shown.best, ' best'),
+        stat(left, shown.left, ' tiles left'));
+      shown = { combo, best, left };
       if (!done && left === 0) {
         done = true; grid.classList.add('solved');
+        // the win: a wave of color washes across the cleared board
+        if (!calm()) { replay(grid, 'win'); setTimeout(() => grid.classList.remove('win'), 1600); }
         ctx.solved(`best combo ${best}`, { value: best, higher: true, fmt: (v) => `combo ${v}` });
       }
       ctx.save({ tiles, combo, best, moves, done });
@@ -106,7 +131,7 @@ export default {
         const live = tiles.map((t, i) => i).filter((i) => !empty(tiles[i]));
         const firsts = sel !== null ? [sel] : live;
         for (const a of firsts) for (const b of live) {
-          if (a !== b && shared(tiles[a], tiles[b]).length) { match(a, b, true); sel = null; render(); return 'Made one match for you'; }
+          if (a !== b && shared(tiles[a], tiles[b]).length) { const lost = cleared(a, b); match(a, b, true); sel = null; render(); burst(a, b, lost); return 'Made one match for you'; }
         }
         return false;
       },

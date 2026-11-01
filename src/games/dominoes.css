@@ -1,0 +1,146 @@
+/* ---------- Pops ----------
+   The one bold thing: real ivory dominoes. Bone-colored faces with drilled pips, a groove and a
+   brass pin, lying on the board with a little thickness. Motion answers each move: a piece flies
+   from the tray and settles, swings round when rotated, spins when flipped, flies home when
+   removed. A region glows when its rule comes true; the win topples the dominoes in a run. */
+
+.game-dominoes, .dom-fly {
+  --ivory-hi: #fffdf7; --ivory: #f5eedb; --ivory-lo: #e4d8bb; --ivory-edge: #c9b892;
+  --pip: #1d2230; --pip-hi: #4b5470; --groove: rgb(92 70 30 / 0.32);
+  --pin-hi: #f6dc97; --pin-lo: #a2742a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .game-dominoes, :root:not([data-theme="light"]) .dom-fly {
+    --ivory-hi: #f0e9d6; --ivory: #e2d8bf; --ivory-lo: #cbbd9b; --ivory-edge: #8d7d58;
+  }
+}
+:root[data-theme="dark"] .game-dominoes, :root[data-theme="dark"] .dom-fly {
+  --ivory-hi: #f0e9d6; --ivory: #e2d8bf; --ivory-lo: #cbbd9b; --ivory-edge: #8d7d58;
+}
+
+/* ----- the board, cropped to the squares in play ----- */
+.game-dominoes .dom-board { width: 100%; padding: 6px 4px 2px; }
+.game-dominoes .dom-wrap {
+  position: relative; margin: 0 auto;
+  width: min(100%, calc(var(--cols) * 74px), calc(var(--cols) * 44svh / var(--rows)));
+  aspect-ratio: var(--cols) / var(--rows);
+}
+.game-dominoes .dom-grid {
+  width: 100%; height: 100%; aspect-ratio: auto;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
+  border-radius: 6px;
+}
+.game-dominoes .dom-grid.solved { animation: none; }
+.game-dominoes .dom-cell { transition: box-shadow 0.15s ease; }
+.game-dominoes .dom-cell:not(.ruled):not(.off) { background: var(--soft); border: 1px dashed var(--line); }
+.game-dominoes .dom-wrap.armed .dom-cell:not(.off):hover { box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--mark) 80%, transparent); }
+.game-dominoes .dom-cell:focus-visible { outline: 3px solid var(--mark); outline-offset: -3px; position: relative; z-index: 4; }
+
+.game-dominoes .dom-layer { position: absolute; inset: 0; pointer-events: none; }
+
+/* ----- a domino: two squares wide, pinned at its first square, turned around that square ----- */
+.game-dominoes .dom-dom {
+  --dx: 0; --dy: 1;
+  position: absolute; left: 0; top: 0; z-index: 1;
+  width: calc(200% / var(--cols)); height: calc(100% / var(--rows));
+  transform-origin: 25% 50%;
+  transform: translate(calc(var(--x) * 50%), calc(var(--y) * 100%)) rotate(var(--rot));
+  transition: transform 0.36s cubic-bezier(0.3, 1.35, 0.5, 1);
+}
+.game-dominoes .dom-dom.focus { z-index: 2; }
+.game-dominoes .dom-dom.landing { opacity: 0; }
+
+.game-dominoes .dom-face, .dom-fly .dom-face {
+  position: absolute; inset: 7% 3.5%;
+  display: grid; grid-template-columns: 1fr 1fr;
+  border-radius: 10px;
+  background: linear-gradient(155deg, var(--ivory-hi), var(--ivory) 42%, var(--ivory-lo));
+  /* edge: a sliver of bone below the face, then the shadow it casts, both lit from above the board */
+  box-shadow:
+    inset 0 0 0 1px rgb(92 70 30 / 0.22),
+    inset 0 1.5px 0 rgb(255 255 255 / 0.75),
+    calc(var(--dx, 0) * 2.5px) calc(var(--dy, 1) * 2.5px) 0 var(--ivory-edge),
+    calc(var(--dx, 0) * 4px) calc(var(--dy, 1) * 6px) 9px rgb(10 14 22 / 0.28);
+  transition: box-shadow 0.2s ease, scale 0.22s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.game-dominoes .dom-dom.focus .dom-face {
+  scale: 1.05;
+  box-shadow:
+    inset 0 0 0 1px rgb(92 70 30 / 0.22),
+    inset 0 1.5px 0 rgb(255 255 255 / 0.75),
+    calc(var(--dx) * 2.5px) calc(var(--dy) * 2.5px) 0 var(--ivory-edge),
+    0 0 0 3px var(--mark),
+    calc(var(--dx) * 7px) calc(var(--dy) * 11px) 16px rgb(10 14 22 / 0.32);
+}
+/* the groove between the halves and the brass pin at the center */
+.game-dominoes .dom-half, .dom-fly .dom-half { display: grid; place-items: center; min-width: 0; }
+.game-dominoes .dom-half:first-child, .dom-fly .dom-half:first-child { box-shadow: inset -1px 0 0 var(--groove), 1px 0 0 rgb(255 255 255 / 0.6); }
+.game-dominoes .dom-face::after, .dom-fly .dom-face::after {
+  content: ''; position: absolute; left: 50%; top: 50%; width: 7%; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--pin-hi), var(--pin-lo) 75%);
+  box-shadow: 0 0 0 0.5px rgb(80 55 10 / 0.5);
+}
+/* drilled pips */
+.game-dominoes .dom-face .pips, .dom-fly .dom-face .pips { width: 64%; gap: 10%; }
+.game-dominoes .dom-face .pips i.on, .dom-fly .dom-face .pips i.on {
+  background: radial-gradient(circle at 40% 34%, var(--pip-hi), var(--pip) 62%);
+  box-shadow: inset 0 1px 1.5px rgb(0 0 0 / 0.55), 0 0.5px 0 rgb(255 255 255 / 0.8);
+}
+.game-dominoes .dom-half.bad .pips i.on { background: radial-gradient(circle at 40% 34%, #ff9a8f, #c3372d 62%); transition: background 0.2s; }
+
+/* set down: drops in and settles; after a flight: a small bump as it lands */
+.game-dominoes .dom-dom.drop .dom-face { animation: dom-drop 0.42s cubic-bezier(0.3, 1.4, 0.5, 1); }
+@keyframes dom-drop { 0% { scale: 1.3; opacity: 0; } 55% { scale: 0.95; opacity: 1; } 100% { scale: 1; } }
+.game-dominoes .dom-dom.settle .dom-face { animation: dom-settle 0.32s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes dom-settle { 35% { scale: 0.93; } }
+
+.dom-fly { position: fixed; left: 0; top: 0; z-index: 40; pointer-events: none; --dx: 0; --dy: 1; }
+.dom-fly .dom-face { box-shadow: inset 0 0 0 1px rgb(92 70 30 / 0.22), inset 0 1.5px 0 rgb(255 255 255 / 0.75), 0 2.5px 0 var(--ivory-edge), 0 14px 22px rgb(10 14 22 / 0.3); }
+
+/* ----- rule badges sit on the region's corner, above the dominoes ----- */
+.game-dominoes .dom-badge {
+  position: absolute; z-index: 3; translate: -32% -34%;
+  min-width: 1.75em; text-align: center; font-size: 0.78rem; padding: 3px 6px;
+  border: 2px solid var(--paper); box-shadow: 0 1px 3px rgb(10 14 22 / 0.25);
+  transition: background-color 0.2s ease;
+}
+.game-dominoes .dom-badge.ok::before { content: '✓ '; }
+.game-dominoes .dom-badge.pop { animation: dom-badge 0.45s cubic-bezier(0.3, 1.8, 0.5, 1); }
+.game-dominoes .dom-badge.bad.pop { animation: dom-badge 0.45s cubic-bezier(0.3, 1.8, 0.5, 1), shake 0.35s ease 0.1s; }
+@keyframes dom-badge { 0% { scale: 0.5; } 55% { scale: 1.3; } 100% { scale: 1; } }
+
+/* a region that just came true: each square flares and fades */
+.game-dominoes .dom-glow {
+  position: absolute; z-index: 2; width: calc(100% / var(--cols)); height: calc(100% / var(--rows)); border-radius: 10px;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--hit) 30%, #fff), color-mix(in srgb, var(--hit) 30%, transparent) 70%, transparent);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--hit) 75%, #fff);
+  mix-blend-mode: screen; animation: dom-glow 0.95s ease-out forwards;
+}
+@keyframes dom-glow { 0% { opacity: 0; scale: 0.7; } 30% { opacity: 0.95; scale: 1.04; } 100% { opacity: 0; scale: 1.12; } }
+
+/* the win: a run of dominoes rocking over in turn */
+.game-dominoes .dom-layer.win .dom-dom .dom-face { animation: dom-topple 0.62s cubic-bezier(0.3, 1.3, 0.5, 1) backwards; animation-delay: calc(var(--i, 0) * 80ms); }
+@keyframes dom-topple { 0% { rotate: 0deg; scale: 1; } 30% { rotate: -9deg; scale: 1.12; } 65% { rotate: 4deg; scale: 0.98; } 100% { rotate: 0deg; scale: 1; } }
+
+/* ----- edit bar keeps its room, so the tray doesn't jump when a piece is picked up ----- */
+.game-dominoes .dom-edit { transition: opacity 0.18s ease, visibility 0.18s; }
+.game-dominoes .dom-edit.off { visibility: hidden; opacity: 0; }
+
+/* ----- the tray: a slot per domino ----- */
+.game-dominoes .dom-tray { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px 10px; min-height: 0; padding: 4px 0 2px; }
+.game-dominoes .dom-slot { position: relative; width: min(84px, calc((100% - 30px) / 4)); aspect-ratio: 2 / 1; border-radius: 10px; }
+.game-dominoes .dom-slot.used { box-shadow: inset 0 0 0 1.5px var(--line); background: color-mix(in srgb, var(--soft) 60%, transparent); }
+.game-dominoes .dom-slot.used .dom-piece { visibility: hidden; }
+.game-dominoes .dom-piece { position: absolute; inset: 0; width: auto; height: auto; border: 0; border-radius: 10px; background: none; display: block; }
+.game-dominoes .dom-piece .dom-face { inset: 0; border-radius: 9px; transition: transform 0.24s cubic-bezier(0.3, 1.5, 0.5, 1), box-shadow 0.2s ease; }
+.game-dominoes .dom-piece:hover .dom-face { transform: translateY(-2px); }
+.game-dominoes .dom-piece.picked .dom-face {
+  transform: translateY(-6px) rotate(-4deg);
+  box-shadow: inset 0 0 0 1px rgb(92 70 30 / 0.22), inset 0 1.5px 0 rgb(255 255 255 / 0.75), 0 2.5px 0 var(--ivory-edge), 0 0 0 3px var(--mark), 0 12px 16px rgb(10 14 22 / 0.28);
+}
+.game-dominoes .dom-piece:focus-visible { outline: none; }
+.game-dominoes .dom-piece:focus-visible .dom-face { outline: 3px solid var(--mark); outline-offset: 2px; }
+.game-dominoes .dom-piece.landing { opacity: 0; }
+.game-dominoes .dom-piece.home .dom-face { animation: dom-settle 0.3s cubic-bezier(0.3, 1.6, 0.5, 1); }
+.game-dominoes .dom-piece .pips { width: 62%; }
+.game-dominoes .dom-piece.picked { background: none; transform: none; }
