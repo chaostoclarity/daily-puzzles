@@ -1,4 +1,6 @@
+import './trivia.css';
 import { h, put } from '../lib/ui.js';
+import { calm } from '../lib/celebrate.js';
 import { generateTrivia } from '../gen/trivia.js';
 
 export default {
@@ -23,35 +25,74 @@ export default {
     const body = h('div', { class: 'trivia' });
     root.append(body);
 
+    // one-shot motion cues for the next render
+    let cue = { picked: false, next: false, cut: null, done: false };
+
+    // the score ticks up from where it was
+    function countTo(el, from, to, fmt) {
+      if (calm() || from === to) { el.textContent = fmt(to); return; }
+      const t0 = performance.now(), ms = Math.min(1100, 160 + Math.abs(to - from) * 90);
+      el.textContent = fmt(from);
+      const step = (now) => {
+        const t = Math.min(1, (now - t0) / ms), e = 1 - (1 - t) ** 3;
+        el.textContent = fmt(Math.round(from + (to - from) * e));
+        if (t < 1 && el.isConnected) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+
+    const pips = (justAt = -1) => h('div', { class: 'trivia-progress', 'aria-hidden': 'true' }, questions.map((qq, i) => h('i', {
+      class: (i < picks.length && picks[i] !== undefined ? (picks[i] === qq.answer ? 'ok' : 'no') : i === idx && !done ? 'cur' : '') + (i === justAt ? ' just' : ''),
+      style: { '--i': i },
+    })));
+
     function render() {
       ctx.save({ picks, idx, done, cut });
       const right = picks.filter((pk, i) => pk === questions[i].answer).length;
+      const c = cue;
+      cue = { picked: false, next: false, cut: null, done: false };
       if (done) {
-        put(body, 
-          h('div', { class: 'trivia-score' }, h('b', {}, `${right}/${questions.length}`), h('span', {}, right >= 8 ? 'Sharp.' : right >= 5 ? 'Solid round.' : 'Tough set.')),
-          h('ol', { class: 'trivia-review' }, questions.map((q, i) => h('li', { class: picks[i] === q.answer ? 'ok' : 'no' },
+        const num = h('b', {});
+        countTo(num, c.done ? 0 : right, right, (v) => `${v}/${questions.length}`);
+        put(body,
+          h('div', { class: 'trivia-score' + (c.done ? ' reveal' : ''), 'aria-label': `${right} of ${questions.length} right` }, num, h('span', {}, right >= 8 ? 'Sharp.' : right >= 5 ? 'Solid round.' : 'Tough set.')),
+          h('div', { class: 'trivia-final' + (c.done ? ' wave' : '') }, pips()),
+          h('ol', { class: 'trivia-review' + (c.done ? ' reveal' : '') }, questions.map((q, i) => h('li', { class: picks[i] === q.answer ? 'ok' : 'no', style: { '--i': i } },
             h('p', {}, q.q),
             h('p', { class: 'ans' }, picks[i] === q.answer ? `✓ ${q.answer}` : `✗ ${picks[i] ?? 'No answer'} · Answer: ${q.answer}`)))));
         return;
       }
       const q = questions[idx];
       const picked = picks[idx];
-      put(body, 
+      const shownRight = c.picked && picked === q.answer ? right - 1 : right;
+      const scoreNum = h('b', {});
+      countTo(scoreNum, shownRight, right, (v) => `${v}`);
+      put(body,
         h('div', { class: 'trivia-top' },
-          h('span', { class: 'trivia-count' }, `Question ${idx + 1} of ${questions.length}`),
-          h('span', { class: 'trivia-cat' }, q.category)),
-        h('div', { class: 'trivia-progress', 'aria-hidden': 'true' }, questions.map((qq, i) => h('i', { class: i < picks.length ? (picks[i] === qq.answer ? 'ok' : 'no') : i === idx ? 'cur' : '' }))),
-        h('h2', { class: 'trivia-q' }, q.q),
-        h('div', { class: 'trivia-choices' }, q.choices.map((c) => h('button', {
-          class: 'choice' + (picked !== undefined ? (c === q.answer ? ' right' : c === picked ? ' wrong' : ' dim') : (cut[idx] || []).includes(c) ? ' cut' : ''),
-          type: 'button', disabled: picked !== undefined || (cut[idx] || []).includes(c),
-          onClick: () => { picks[idx] = c; render(); },
-        }, c))),
+          h('span', { class: 'trivia-count' }, h('b', {}, `${idx + 1}`), ` of ${questions.length}`),
+          h('span', { class: 'trivia-cat' }, q.category),
+          h('span', { class: 'trivia-tally' + (c.picked && picked === q.answer ? ' up' : ''), 'aria-label': `${right} right so far` }, h('i', { 'aria-hidden': 'true' }, '✓'), scoreNum)),
+        pips(c.picked ? idx : -1),
+        h('div', { class: 'trivia-card' + (c.next ? ' enter' : '') },
+          h('h2', { class: 'trivia-q' }, q.q),
+          h('div', { class: 'trivia-choices' + (picked !== undefined ? ' locked' : '') }, q.choices.map((ch, k) => {
+            const isCut = (cut[idx] || []).includes(ch);
+            const state = picked !== undefined ? (ch === q.answer ? 'right' : ch === picked ? 'wrong' : 'dim') : isCut ? 'cut' : '';
+            // the pick flips over first; when it was wrong, the right answer flips a beat later
+            const flip = c.picked && (state === 'right' || state === 'wrong') ? ` flip${state === 'right' && picked !== q.answer ? ' late' : ''}` : '';
+            return h('button', {
+              class: 'choice' + (state ? ` ${state}` : '') + flip + (c.cut === ch ? ' cutting' : ''),
+              type: 'button', disabled: picked !== undefined || isCut, style: { '--k': k },
+              'aria-label': ch + (state === 'right' ? ', correct answer' : state === 'wrong' ? ', your answer, wrong' : isCut ? ', removed by hint' : ''),
+              onClick: () => { picks[idx] = ch; cue.picked = true; render(); },
+            }, h('span', { class: 'ch-key', 'aria-hidden': 'true' }, 'ABCD'[k]), h('span', { class: 'ch-text' }, ch),
+              state === 'right' ? h('span', { class: 'ch-mark', 'aria-hidden': 'true' }, '✓') : state === 'wrong' ? h('span', { class: 'ch-mark', 'aria-hidden': 'true' }, '✗') : null);
+          }))),
         picked !== undefined ? h('button', {
-          class: 'btn primary next', type: 'button',
+          class: 'btn primary next' + (c.picked ? ' arrive' : ''), type: 'button',
           onClick: () => {
-            if (idx < questions.length - 1) { idx++; render(); }
-            else { done = true; render(); ctx.solved(`${right}/${questions.length}`, { value: right, higher: true, fmt: (v) => `${v}/${questions.length}` }); }
+            if (idx < questions.length - 1) { idx++; cue.next = true; render(); }
+            else { done = true; cue.done = true; render(); ctx.solved(`${right}/${questions.length}`, { value: right, higher: true, fmt: (v) => `${v}/${questions.length}` }); }
           },
         }, idx < questions.length - 1 ? 'Next' : 'See score') : null);
       const nb = body.querySelector('.next');
@@ -65,14 +106,16 @@ export default {
         const gone = cut[idx] || [];
         const left = q.choices.filter((c) => c !== q.answer && !gone.includes(c));
         if (left.length <= 1) { ctx.toast('Down to two answers. Your call.'); return false; }
-        cut[idx] = [...gone, left[Math.floor(Math.random() * left.length)]];
+        const drop = left[Math.floor(Math.random() * left.length)];
+        cut[idx] = [...gone, drop];
+        cue.cut = drop;
         render();
         return 'Removed one wrong answer';
       },
       onKey(k) {
         if (done) return;
         const q = questions[idx];
-        if (picks[idx] === undefined && /^[a-d]$/.test(k)) { const c = q.choices['abcd'.indexOf(k)]; if (c) { picks[idx] = c; render(); } }
+        if (picks[idx] === undefined && /^[a-d]$/.test(k)) { const c = q.choices['abcd'.indexOf(k)]; if (c) { picks[idx] = c; cue.picked = true; render(); } }
       },
     };
   },
