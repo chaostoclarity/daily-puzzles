@@ -1,0 +1,101 @@
+/* ---------- Werdle ----------
+   The one bold thing: tactile two-sided letter tiles. Typing presses a letter onto the front;
+   Enter turns each tile over in turn to show its color on the back, the keyboard catches up
+   once the last tile lands, and a solved row jumps in a wave. */
+.game-guess {
+  --tile-gap: 6px;
+  --face: var(--surface);
+}
+.game-guess .guess-board {
+  /* tiles as big as the phone allows: limited by the width, and by the height left after the keyboard */
+  --tile: clamp(42px, min(calc((100vw - 32px - (var(--len) - 1) * var(--tile-gap)) / var(--len)), calc((100svh - 400px) / var(--tries, 6) - var(--tile-gap))), 64px);
+  width: calc(var(--len) * var(--tile) + (var(--len) - 1) * var(--tile-gap));
+}
+.game-guess .guess-grid, .game-guess .guess-row { gap: var(--tile-gap); }
+
+.game-guess .tile {
+  height: var(--tile); aspect-ratio: auto; border-radius: 8px; border: 2px solid var(--line);
+  font-size: calc(var(--tile) * 0.5); line-height: 1; letter-spacing: 0;
+  background: var(--surface); color: var(--ink);
+  box-shadow: inset 0 2px 0 color-mix(in srgb, var(--soft) 70%, transparent);
+  transition: border-color 0.18s ease, color 0.18s ease;
+  backface-visibility: hidden;
+}
+/* the row you're on reads as the live one */
+.game-guess .guess-row.now .tile { border-color: color-mix(in srgb, var(--line) 55%, var(--muted)); }
+.game-guess .tile.filled { border-color: var(--ink); }
+.game-guess .tile.pop { animation: wd-pop 0.17s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes wd-pop { 0% { transform: scale(0.82); } 55% { transform: scale(1.09); } }
+
+/* the backs: colored, with a bevel so they read as solid tiles */
+.game-guess .tile.hit { --face: var(--hit); }
+.game-guess .tile.near { --face: var(--near); }
+.game-guess .tile.miss { --face: var(--miss); }
+.game-guess .tile.hit, .game-guess .tile.near, .game-guess .tile.miss {
+  background: var(--face); border-color: var(--face); color: var(--on-color);
+  box-shadow: inset 0 -4px 0 rgb(0 0 0 / 0.16), inset 0 2px 0 rgb(255 255 255 / 0.16);
+  text-shadow: 0 1px 0 rgb(0 0 0 / 0.18);
+}
+/* turning over: the front tips away, the colored back comes up */
+.game-guess .tile.flip {
+  animation: wd-flip 0.48s both;
+  animation-delay: calc(var(--i) * 110ms);
+}
+@keyframes wd-flip {
+  0% {
+    transform: perspective(420px) rotateX(0); background: var(--surface); border-color: var(--ink); color: var(--ink);
+    box-shadow: none; text-shadow: none; animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.5);
+  }
+  50% {
+    transform: perspective(420px) rotateX(-90deg); background: var(--surface); border-color: var(--ink); color: var(--ink);
+    box-shadow: none; text-shadow: none;
+  }
+  50.1% { transform: perspective(420px) rotateX(90deg); background: var(--face); border-color: var(--face); color: var(--on-color); animation-timing-function: cubic-bezier(0.2, 0.6, 0.35, 1.25); }
+  100% { transform: perspective(420px) rotateX(0); background: var(--face); border-color: var(--face); color: var(--on-color); }
+}
+
+/* a word that can't be played: the row shakes and flashes red */
+.game-guess .guess-row.nope .tile { border-color: var(--bad); color: var(--bad); }
+.game-guess .guess-row.shake { animation: wd-shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+@keyframes wd-shake {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(5px); }
+  30%, 50%, 70% { transform: translateX(-8px); }
+  40%, 60% { transform: translateX(8px); }
+}
+
+/* solved: the winning row jumps in a wave, then settles with a glow */
+.game-guess .guess-row.win .tile {
+  animation: wd-jump 0.62s cubic-bezier(0.3, 0, 0.3, 1) both;
+  animation-delay: calc(var(--i) * 85ms);
+}
+@keyframes wd-jump {
+  0% { transform: translateY(0); }
+  30% { transform: translateY(-34%) scale(1.04); }
+  55% { transform: translateY(4%) scale(1.02, 0.94); }
+  75% { transform: translateY(-6%); }
+  100% { transform: translateY(0); }
+}
+.game-guess .guess-row.win .tile, .game-guess .guess-row.won .tile {
+  box-shadow: inset 0 -4px 0 rgb(0 0 0 / 0.16), inset 0 2px 0 rgb(255 255 255 / 0.16), 0 6px 16px -6px color-mix(in srgb, var(--hit) 70%, transparent);
+}
+
+/* hint letters: a strip above the board; a new one turns over into place */
+.game-guess .guess-hints { gap: var(--tile-gap); }
+.game-guess .guess-hints span { border-radius: 8px; }
+.game-guess .guess-hints span.on { box-shadow: inset 0 -3px 0 color-mix(in srgb, var(--mark) 60%, transparent); }
+.game-guess .guess-hints span.new { animation: wd-hint 0.5s cubic-bezier(0.3, 1.4, 0.5, 1); }
+@keyframes wd-hint { 0% { transform: perspective(300px) rotateY(90deg) scale(0.8); } }
+
+/* the answer card rises once the tiles have turned, its letters following one by one */
+.game-guess .result-box:not([hidden]) { animation: wd-rise 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.15) var(--wait, 0ms) backwards; }
+@keyframes wd-rise { from { transform: translateY(14px); opacity: 0; } }
+.game-guess .result-word { display: flex; justify-content: center; gap: 0.06em; }
+.game-guess .result-word span { display: inline-block; animation: wd-letter 0.4s cubic-bezier(0.3, 1.5, 0.5, 1) backwards; animation-delay: calc(var(--wait, 0ms) + 120ms + var(--i) * 60ms); }
+@keyframes wd-letter { from { transform: translateY(10px) scale(0.6); opacity: 0; } }
+
+/* keyboard keys press down, and colors arrive with a small pop */
+.game-guess .kb-key { transition: background-color 0.25s ease, color 0.25s ease, transform 0.08s ease; }
+.game-guess .kb-key:active { transform: translateY(1px) scale(0.94); }
+.game-guess .kb-key.hit, .game-guess .kb-key.near, .game-guess .kb-key.miss { animation: wd-key 0.32s cubic-bezier(0.3, 1.5, 0.5, 1); }
+@keyframes wd-key { 0% { transform: scale(0.88); } }

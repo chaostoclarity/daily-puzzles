@@ -1,0 +1,7 @@
+/* ---------- The Mido ----------
+   Same printed crossword as The Mino (src/games/mini.css), tuned for the denser 7x7 grid:
+   tighter clue numbers and a quicker solve cascade so it still crosses the grid in time. */
+.game-midi .mini-num { top: 1px; left: 2px; }
+.game-midi .mini-grid.win .mini-cell:not(.block),
+.game-midi .mini-grid.win .mini-cell .mini-letter,
+.game-midi .mini-grid.win .mini-cell .mini-num { animation-delay: calc(var(--d) * 42ms); }
