@@ -248,7 +248,7 @@ function buildGame(g) {
     body,
     h('footer', { class: 'toolbar' },
       h('div', { class: 'toolbar-row' },
-        h('span', { class: 'puzzle-label' }, label, recordLine(g, d) ? h('span', { class: 'record-tag' }, recordLine(g, d)) : null,
+        h('span', { class: 'puzzle-label' }, label, h('span', { class: 'record-tag', hidden: !recordLine(g, d) }, recordLine(g, d)),
           n > 0 ? h('button', { class: 'link', type: 'button', onClick: () => { store.set(extraKey(g, d), 0); renderGame(g); } }, 'Back to today') : null),
         h('span', { class: 'toolbar-btns' },
           revealBtn,
@@ -295,6 +295,15 @@ function buildGame(g) {
     load: () => store.get(`dp:s:${sk}`),
     save: (state) => store.set(`dp:s:${sk}`, state),
     finished: () => stop(),
+    // live best-score record for games scored by points rather than a finish (Spilling Bee)
+    best: (score) => {
+      if (store.get(hintKey, 0) || !score || !Number.isFinite(score.value)) return;
+      const prev = getRecord(g, d) || { solves: 0 };
+      if (prev.score != null && (score.higher ? score.value <= prev.score : score.value >= prev.score)) return;
+      store.set(recordKey(g, d), { ...prev, score: score.value, scoreText: fmtScore(score, score.value), higher: !!score.higher, scoreOn: today() });
+      const tag = document.querySelector('.record-tag');
+      if (tag) { tag.textContent = recordLine(g, d); tag.hidden = false; }
+    },
     solved: (summary, score) => {
       stop();
       store.set(`dp:done:${sk}`, secs);
@@ -304,7 +313,7 @@ function buildGame(g) {
       const rec = { ...prev, solves: (prev.solves || 0) + 1 };
       const news = [];
       if (!hints) {
-        if (prev.time == null || secs < prev.time) {
+        if (!g.noTimer && (prev.time == null || secs < prev.time)) {
           if (prev.time != null) news.push(`New best time! ${fmtTime(secs)} (was ${fmtTime(prev.time)})`);
           else news.push(`First hint-free solve on ${DIFFS.find((x) => x[0] === d)[1]}: ${fmtTime(secs)}`);
           rec.time = secs; rec.timeOn = today();
@@ -321,7 +330,7 @@ function buildGame(g) {
       const mine = active;
       setTimeout(() => active === mine && sheet((close) => [
         h('div', { class: 'sheet-head' }, h('span', { class: 'sheet-icon', style: { '--g': `var(--g-${g.id})` }, html: ICONS[g.id] }), h('h2', {}, summary ? `${g.name}: ${summary}` : `${g.name} solved`)),
-        h('p', { class: 'big-time' }, fmtTime(secs)),
+        g.noTimer ? null : h('p', { class: 'big-time' }, fmtTime(secs)),
         news.length ? news.map((t) => h('p', { class: 'record-new' }, t)) : null,
         h('p', {}, `${DIFFS.find((x) => x[0] === d)[1]} · ${label}` + (hints ? ` · ${hints} hint${hints > 1 ? 's' : ''} (records count hint-free solves)` : '')),
         h('p', { class: 'record-line' }, [recordLine(g, d), `solved ${rec.solves} time${rec.solves === 1 ? '' : 's'}`].filter(Boolean).join(' · ')),
@@ -338,6 +347,7 @@ function buildGame(g) {
   if (!api.reveal) revealBtn.hidden = true;
   if (!api.hint) hintBtn.hidden = true;
   if (finished) timerEl.classList.add('stopped');
+  if (g.noTimer) timerEl.hidden = true;
   active = {
     g, api,
     tick: setInterval(() => {

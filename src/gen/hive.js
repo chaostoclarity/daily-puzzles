@@ -47,8 +47,10 @@ export function hivePoints(w) {
 export const hiveIsPangram = (w) => new Set(w).size === 7;
 export const hiveKnownWord = (w) => isWord(w, 60);
 
+// The New York Times' ranks, as a share of the day's total points; Queen Bee means every word.
 export const RANKS = [
-  ['Starting', 0], ['Good', 0.05], ['Solid', 0.12], ['Nice', 0.2], ['Great', 0.33], ['Amazing', 0.5], ['Genius', 0.7], ['Perfect', 1],
+  ['Beginner', 0], ['Good Start', 0.02], ['Moving Up', 0.05], ['Good', 0.08], ['Solid', 0.15],
+  ['Nice', 0.25], ['Great', 0.4], ['Amazing', 0.5], ['Genius', 0.7], ['Queen Bee', 1],
 ];
 export function rankFor(score, max) {
   let r = RANKS[0][0];

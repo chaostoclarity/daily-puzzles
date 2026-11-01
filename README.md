@@ -10,7 +10,7 @@ Twenty-five daily puzzle games in one web app. Every puzzle is generated in the 
 | Crissclimb | Crossclimb | 3 rungs in order | 5 rungs, scrambled | 6 rungs, scrambled, synonym clues |
 | Werdle | Wordle | 4 letters | 5 letters | 5 letters, less common, hints must be reused |
 | The Mino | The Mini | 4x4 | 5x5 | 5x5, rarer words, synonym clues |
-| Spilling Bee | Spelling Bee | common words only | everyday dictionary | big dictionary |
+| Spilling Bee | Spelling Bee | common words only | everyday dictionary | big dictionary; no timer, Genius solves |
 | Pile-Up Pokar | Pile-Up Poker | 4x4, next deal shown | 4x4, 36-card deck | 5x5 Pro: full deck plus joker, 5-card hands |
 | Trivia | daily trivia | easy questions | medium | hard |
 | Sudoku | Sudoku | 40 givens | 32 givens | about 26 givens, still one answer |
@@ -30,7 +30,7 @@ Twenty-five daily puzzle games in one web app. Every puzzle is generated in the 
 | Wordbund | Wordbind | 4+ letters, goals at 4 to 6 | 5+ letters, goals at 5 to 7 | longer phrase, goals at 6 to 8 |
 | Woffle | Waffle | common words, par 6 swaps | common words, par 10 | wider word list, par 10, fewer green to start |
 
-Crissclimb's top and bottom words join into a compound word (FIRE + WORK). Spilling Bee is solved when you find a pangram.
+Crissclimb's top and bottom words join into a compound word (FIRE + WORK). Spilling Bee follows the New York Times rules: 4-letter words score 1, longer words 1 per letter, pangrams 7 extra. Ranks run Beginner to Genius (70% of the day's points, which counts as solved) to Queen Bee (every word), with no timer; your record is your best points.
 
 Each game has Easy, Medium and Hard, a **New puzzle** button for an extra round, **Show answer**, and saves progress in the browser.
 
