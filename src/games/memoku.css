@@ -1,0 +1,99 @@
+/* ---------- Memaku ----------
+   The bold thing: real cards. Every tile is two-sided, with a patterned card back in the game's
+   color, and it turns over in 3D. Pairs snap and glow when they match, misses shake and turn back,
+   a fresh board deals in, and the win spins a wave of cards out from the last pair. */
+
+.game-memoku .mk-board { width: min(100%, 430px); }
+.game-memoku .mk-grid { gap: 7px; }
+.game-memoku .mk-box { gap: 4px; }
+
+.game-memoku .mk-cell,
+.game-memoku .mk-cell.up,
+.game-memoku .mk-cell.peek,
+.game-memoku .mk-cell.miss {
+  position: relative; background: none; box-shadow: none; color: var(--ink); transition: none;
+  perspective: 600px; -webkit-tap-highlight-color: transparent; border-radius: 7px;
+}
+.game-memoku .mk-cell:disabled { cursor: default; }
+.game-memoku .mk-cell:focus-visible { outline: 3px solid var(--mark); outline-offset: 1px; }
+
+.game-memoku .mk-card {
+  position: absolute; inset: 0; transform-style: preserve-3d;
+  transition: transform 0.44s cubic-bezier(0.3, 1.3, 0.5, 1);
+}
+.game-memoku .mk-cell.show .mk-card { transform: rotateY(180deg); }
+.game-memoku .mk-face {
+  position: absolute; inset: 0; border-radius: 7px; display: grid; place-items: center;
+  -webkit-backface-visibility: hidden; backface-visibility: hidden;
+}
+/* the card back: a framed diamond lattice, like a deck of playing cards */
+.game-memoku .mk-back {
+  --bk: color-mix(in srgb, var(--g) 82%, var(--surface));
+  background:
+    radial-gradient(circle, rgb(255 255 255 / 0.5) 0 7%, transparent 8%),
+    repeating-linear-gradient(45deg, rgb(255 255 255 / 0.13) 0 2px, transparent 2px 7px),
+    repeating-linear-gradient(-45deg, rgb(255 255 255 / 0.13) 0 2px, transparent 2px 7px),
+    var(--bk);
+  box-shadow: inset 0 0 0 3px var(--bk), inset 0 0 0 4px rgb(255 255 255 / 0.35), inset 0 -3px 0 3px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.18);
+  transition: transform 0.15s ease;
+}
+@media (hover: hover) { .game-memoku .mk-cell:not(.show):not(:disabled):hover .mk-back { transform: translateY(-2px); } }
+.game-memoku .mk-cell:not(.show):active .mk-back { transform: scale(0.94); }
+/* the face */
+.game-memoku .mk-front {
+  transform: rotateY(180deg); background: var(--surface); box-shadow: inset 0 0 0 1px var(--line), 0 1px 2px rgb(0 0 0 / 0.1);
+  font-family: var(--f-display); font-weight: 700; font-variant-numeric: lining-nums; font-size: clamp(1.05rem, 5.6vw, 1.65rem);
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+.game-memoku .mk-cell.given .mk-front { background: var(--soft); color: var(--muted); box-shadow: none; }
+.game-memoku .mk-cell.up:not(.given) .mk-front { box-shadow: inset 0 0 0 1px var(--line), inset 0 -3px 0 color-mix(in srgb, var(--g) 55%, transparent); }
+.game-memoku .mk-cell.peek .mk-front { background: color-mix(in srgb, var(--mark) 50%, var(--surface)); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--mark) 80%, var(--ink)); }
+.game-memoku .mk-cell.miss .mk-front { background: color-mix(in srgb, var(--bad) 30%, var(--surface)); box-shadow: inset 0 0 0 1.5px var(--bad); }
+
+/* a miss: once both are up, the pair shakes its head before turning back */
+/* (card motion goes on the card itself: transforming the tile would flatten its 3D turn) */
+.game-memoku .mk-cell.miss .mk-card { animation: mk-shake 0.4s ease 0.32s; }
+@keyframes mk-shake {
+  0%, 100% { transform: rotateY(180deg); }
+  20%, 60% { transform: rotateY(180deg) translateX(4px) rotate(2deg); }
+  40%, 80% { transform: rotateY(180deg) translateX(-4px) rotate(-2deg); }
+}
+
+/* a match: the pair snaps up and a ring of the game's color flares from each card */
+.game-memoku .mk-cell.match { z-index: 1; }
+.game-memoku .mk-cell.match .mk-card { animation: mk-snap 0.5s cubic-bezier(0.3, 1.7, 0.5, 1) 0.3s; }
+@keyframes mk-snap { 0%, 100% { transform: rotateY(180deg); } 40% { transform: rotateY(180deg) scale(1.16); } }
+.game-memoku .mk-cell.match::after, .game-memoku .mk-cell.hinted::after {
+  content: ''; position: absolute; inset: 0; border-radius: 8px; pointer-events: none;
+  box-shadow: 0 0 0 3px var(--g); opacity: 0; animation: mk-ring 0.65s ease-out 0.32s;
+}
+.game-memoku .mk-cell.hinted::after { box-shadow: 0 0 0 4px var(--mark); animation-duration: 1.2s; }
+@keyframes mk-ring { 0% { opacity: 1; transform: scale(0.9); } 100% { opacity: 0; transform: scale(1.35); } }
+.game-memoku .mk-cell.match .mk-front { animation: mk-glow 0.9s ease-out 0.3s; }
+@keyframes mk-glow { 0%, 30% { background: color-mix(in srgb, var(--g) 35%, var(--surface)); } }
+.game-memoku .mk-cell.hinted .mk-front { animation: mk-hint 1.2s ease-out 0.3s; }
+@keyframes mk-hint { 0%, 30% { background: color-mix(in srgb, var(--mark) 60%, var(--surface)); } }
+
+/* a fresh board: the cards are dealt in, corner to corner */
+.game-memoku .mk-grid.deal .mk-card { animation: mk-deal 0.42s cubic-bezier(0.3, 1.4, 0.5, 1) var(--w) backwards; }
+.game-memoku .mk-grid.deal .show .mk-card { animation-name: mk-deal-up; }
+@keyframes mk-deal { 0% { transform: translateY(-14px) scale(0.6) rotate(-8deg); opacity: 0; } 100% { transform: none; } }
+@keyframes mk-deal-up { 0% { transform: rotateY(180deg) translateY(-14px) scale(0.6) rotate(8deg); opacity: 0; } 100% { transform: rotateY(180deg); } }
+/* Show answer: the rest turn over in a wave */
+.game-memoku .mk-grid.cascade .mk-card { transition-delay: var(--w); }
+
+/* the win: cards spin over in a wave from the last pair, the faces lighting up as they land */
+.game-memoku .mk-grid.wave .mk-card { animation: mk-spin 0.7s cubic-bezier(0.4, 0, 0.2, 1) var(--w) backwards; }
+@keyframes mk-spin { from { transform: rotateY(180deg); } to { transform: rotateY(540deg); } }
+.game-memoku .mk-grid.wave .mk-front { animation: mk-glow 1s ease-out var(--w) backwards; }
+.game-memoku .mk-grid.solved .mk-cell:not(.given) .mk-front { color: color-mix(in srgb, var(--g) 75%, var(--ink)); }
+
+/* the count under the board */
+.game-memoku .mk-meter { display: flex; justify-content: center; align-items: baseline; gap: 8px; }
+.game-memoku .mk-stat b { font-family: var(--f-display); font-size: 1.2rem; color: var(--ink); font-variant-numeric: lining-nums tabular-nums; }
+.game-memoku .mk-stat { display: inline-block; }
+.game-memoku .mk-stat.bump { animation: mk-bump 0.45s cubic-bezier(0.3, 1.6, 0.5, 1); }
+.game-memoku .mk-stat.bump b { animation: mk-bump-c 1s ease; }
+@keyframes mk-bump-c { 0%, 50% { color: var(--bad); } }
+@keyframes mk-bump { 30% { transform: translateY(-3px) scale(1.12); } }
+.game-memoku .mk-stat.done { font-weight: 700; color: var(--g); }
