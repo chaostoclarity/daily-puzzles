@@ -1,5 +1,6 @@
-// Fire (and, at the top level, lightning) drawn on a canvas behind an element.
-// Spilling Bee's comb catches fire at Genius and crackles with lightning at Queen Bee.
+// Fire (and, at the top, lightning) drawn on a canvas behind an element. The fire has a size:
+// Spilling Bee's comb starts smoldering a few ranks before Genius, blazes at Genius, and
+// crackles with lightning at Queen Bee.
 import { calm } from './celebrate.js';
 
 // soft round sprites in fire colors, drawn once and reused for every particle
@@ -26,13 +27,14 @@ function bolt(x0, y0, x1, y1, rough, depth, out) {
 }
 
 /**
- * flame(canvas, target): returns { set(level), stop() }. level 0 is off, 1 is fire, 2 is fire
- * with lightning. The canvas should sit behind target and extend past it.
+ * flame(canvas, target): returns { set(size, lightning), stop() }. size 0 is out, about 0.2 a
+ * small flicker along the top, 1 a full blaze; lightning adds strikes. Size changes ease in, so
+ * the fire visibly grows. The canvas should sit behind target and extend past it.
  */
 export function flame(canvas, target, { onStrike } = {}) {
   const ctx = canvas.getContext('2d');
   let sprites = null;
-  let level = 0, raf = 0, last = 0, W = 0, H = 0, cx = 0, cy = 0, R = 0, nextBolt = 0, flash = 0;
+  let level = 0, target_ = 0, bolts_on = false, raf = 0, last = 0, W = 0, H = 0, cx = 0, cy = 0, R = 0, nextBolt = 0, flash = 0;
   let parts = [], bolts = [], light = true;
 
   function size() {
@@ -46,15 +48,16 @@ export function flame(canvas, target, { onStrike } = {}) {
 
   function spawn(n) {
     for (let i = 0; i < n; i++) {
-      // flames lick up from the top and sides of the comb; a few from anywhere
-      const a = Math.random() < 0.8 ? -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.55 : Math.random() * Math.PI * 2;
+      // a small fire flickers along the top of the comb; as it grows it wraps down the sides
+      const spread = Math.PI * Math.min(1.6, 0.45 + 1.1 * level);
+      const a = Math.random() < 0.85 || level < 0.8 ? -Math.PI / 2 + (Math.random() - 0.5) * spread : Math.random() * Math.PI * 2;
       const r = R * (0.74 + Math.random() * 0.24);
       const ember = Math.random() < 0.07;
-      const big = level === 2 ? 1.15 : 1;
+      const big = 0.45 + 0.6 * level; // flame size, height and life all scale with the fire
       parts.push({
         x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r * 0.9,
-        vx: Math.cos(a) * 26 + (Math.random() - 0.5) * 20, vy: -(70 + Math.random() * 80) * big,
-        t: 0, life: ember ? 1.3 + Math.random() * 0.9 : (0.45 + Math.random() * 0.45) * big,
+        vx: Math.cos(a) * 26 + (Math.random() - 0.5) * 20, vy: -(70 + Math.random() * 80) * (0.6 + 0.4 * big),
+        t: 0, life: ember ? 1.3 + Math.random() * 0.9 : (0.45 + Math.random() * 0.45) * (0.6 + 0.4 * big),
         s: ember ? 1.6 + Math.random() * 1.8 : (7 + Math.random() * 9) * big,
         seed: Math.random() * 10, ember,
       });
@@ -84,17 +87,19 @@ export function flame(canvas, target, { onStrike } = {}) {
     const dt = Math.min(0.05, (now - last) / 1000 || 0.016);
     last = now;
     if (document.hidden) return;
-    if (level) {
-      const want = (level === 2 ? 150 : 115) * dt;
+    level += (target_ - level) * Math.min(1, dt * 1.6); // grow (or die down) over a second or two
+    if (Math.abs(target_ - level) < 0.002) level = target_;
+    if (level > 0.01) {
+      const want = 130 * level * dt;
       spawn(Math.floor(want) + (Math.random() < want % 1 ? 1 : 0));
-      if (level === 2 && now > nextBolt) { strike(); if (Math.random() < 0.4) strike(); nextBolt = now + 450 + Math.random() * 1100; }
+      if (bolts_on && now > nextBolt) { strike(); if (Math.random() < 0.4) strike(); nextBolt = now + 450 + Math.random() * 1100; }
     }
     ctx.clearRect(0, 0, W, H);
     // on dark paper light adds up like real fire; on light paper it would wash out, so paint over
     ctx.globalCompositeOperation = light ? 'source-over' : 'lighter';
     // a breath of light behind the comb that flares with each strike
     if (!light && (level || flash > 0)) {
-      const glow = 0.2 + (level === 2 ? 0.08 : 0) + flash * 0.35;
+      const glow = 0.22 * Math.min(1.2, level) + flash * 0.35;
       ctx.globalAlpha = glow;
       ctx.drawImage(sprites.gold, cx - R * 1.7, cy - R * 1.7, R * 3.4, R * 3.4);
       flash = Math.max(0, flash - dt * 4);
@@ -137,18 +142,17 @@ export function flame(canvas, target, { onStrike } = {}) {
       ctx.shadowBlur = 0;
     }
     ctx.globalAlpha = 1;
-    if (!level && !parts.length && !bolts.length && flash <= 0) { cancelAnimationFrame(raf); raf = 0; ctx.clearRect(0, 0, W, H); }
+    if (!target_ && level < 0.01 && !parts.length && !bolts.length && flash <= 0) { level = 0; cancelAnimationFrame(raf); raf = 0; ctx.clearRect(0, 0, W, H); }
   }
 
   const onResize = () => { if (raf) size(); };
   window.addEventListener('resize', onResize);
 
   return {
-    set(l) {
-      if (calm()) l = 0;
-      if (l === level) return;
-      level = l;
-      if (!l || raf) return;
+    set(amount, lightning = false) {
+      if (calm()) amount = 0;
+      target_ = amount; bolts_on = !!lightning && amount > 0;
+      if (!amount || raf) return;
       light = !/dark/.test(getComputedStyle(canvas).colorScheme || '');
       sprites = light
         ? { hot: sprite('255,214,92'), gold: sprite('255,170,30'), orange: sprite('240,96,18'), red: sprite('190,40,12') }
@@ -158,6 +162,6 @@ export function flame(canvas, target, { onStrike } = {}) {
       nextBolt = last + 400;
       raf = requestAnimationFrame(tick);
     },
-    stop() { level = 0; cancelAnimationFrame(raf); raf = 0; window.removeEventListener('resize', onResize); },
+    stop() { level = target_ = 0; cancelAnimationFrame(raf); raf = 0; window.removeEventListener('resize', onResize); },
   };
 }

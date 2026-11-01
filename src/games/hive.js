@@ -245,7 +245,9 @@ export default {
       const queen = found.length === p.words.length;
       stage.classList.toggle('blaze', sc >= geniusAt);
       stage.classList.toggle('queen', queen);
-      requestAnimationFrame(() => fire.set(queen ? 2 : sc >= geniusAt ? 1 : 0));
+      // fire starts small at Nice, grows through Great and Amazing, blazes at Genius
+      const FIRE = { Nice: 0.22, Great: 0.45, Amazing: 0.7, Genius: 1 };
+      requestAnimationFrame(() => fire.set(queen ? 1.15 : sc >= geniusAt ? 1 : FIRE[rank] || 0, queen));
       const shown = revealed ? p.words : found.slice().sort();
       put(list, 
         h('h3', {}, revealed ? `All ${p.words.length} words` : `Found ${found.length}`),
