@@ -1,5 +1,6 @@
 import { h, put } from '../lib/ui.js';
 import { calm, centerOf } from '../lib/celebrate.js';
+import { flame } from '../lib/flame.js';
 import { generateHive, hivePoints, hiveIsPangram, hiveKnownWord, RANKS, rankFor } from '../gen/hive.js';
 
 export default {
@@ -34,11 +35,16 @@ export default {
     const said = h('p', { class: 'sr-only', 'aria-live': 'polite' }); // spoken feedback for screen readers
     const inputWrap = h('div', { class: 'hive-input-wrap' }, input);
     const hex = h('div', { class: 'hive', role: 'group', 'aria-label': 'Letters' });
+    // the comb sits on a stage: its glow builds with every rank, and at Genius it catches fire
+    const fireCv = h('canvas', { class: 'hive-fire', 'aria-hidden': 'true' });
+    const stage = h('div', { class: 'hive-stage' }, fireCv, hex);
+    const fire = flame(fireCv, hex, { onStrike: () => replay(stage, 'strike') });
+    const GENIUS = RANKS.findIndex(([n]) => n === 'Genius');
     const meter = h('div', { class: 'hive-meter' });
     const list = h('div', { class: 'hive-found' });
     const hints = h('details', { class: 'hive-hints' });
     const hintChip = h('div', { class: 'hive-hintword', 'aria-live': 'polite' });
-    root.append(meter, hintChip, inputWrap, hex,
+    root.append(meter, hintChip, inputWrap, stage,
       h('div', { class: 'row-actions' },
         // each drops focus after a tap so a later Enter key submits the word instead of pressing it again
         h('button', { class: 'btn', type: 'button', onClick: (e) => { e.currentTarget.blur(); onKey('back'); } }, 'Delete'),
@@ -233,6 +239,13 @@ export default {
       const fill = meter.querySelector('.hive-fill');
       if (prevFill != null) requestAnimationFrame(() => requestAnimationFrame(() => { fill.style.width = `${fillAt(sc)}%`; }));
       shownRank = rank; shownScore = sc;
+      // heat: 0 at Beginner rising to 1 at Amazing; Genius blazes, Queen Bee adds lightning
+      const level = RANKS.findIndex(([n]) => n === rank);
+      stage.style.setProperty('--heat', Math.min(1, level / (GENIUS - 1)).toFixed(3));
+      const queen = found.length === p.words.length;
+      stage.classList.toggle('blaze', sc >= geniusAt);
+      stage.classList.toggle('queen', queen);
+      requestAnimationFrame(() => fire.set(queen ? 2 : sc >= geniusAt ? 1 : 0));
       const shown = revealed ? p.words : found.slice().sort();
       put(list, 
         h('h3', {}, revealed ? `All ${p.words.length} words` : `Found ${found.length}`),
@@ -278,6 +291,7 @@ export default {
         return `Next letter of a ${hintWord.w.length}-letter word`;
       },
       reveal() { revealed = true; render(); },
+      destroy() { fire.stop(); },
     };
   },
 };
