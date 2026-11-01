@@ -1,4 +1,6 @@
+import './ladder.css';
 import { h, put, keyboard, shake } from '../lib/ui.js';
+import { calm } from '../lib/celebrate.js';
 import { generateLadder, oneApart } from '../gen/ladder.js';
 
 export default {
@@ -38,16 +40,30 @@ export default {
     const kb = keyboard(onKey);
     root.append(clueBox, list, status, kb.el);
 
+    // Motion. Rows are rebuilt on every render, so a moment (a rung solved, a letter typed, the
+    // ends unlocking) is kept as a timed mark and replayed on whichever row element is current,
+    // with a negative delay so a re-render mid-animation picks it up where it was.
+    const marks = new Map(); // key -> { cls, t0, ms }
+    const mark = (key, cls, ms = 900) => { if (!calm()) marks.set(key + ':' + cls, { key, cls, t0: performance.now(), ms }); };
+    const marksFor = (key) => [...marks.values()].filter((m) => m.key === key && performance.now() - m.t0 < m.ms);
+    let typed = null; // { key, i, t0 } the letter just typed
+    let shownActive = active, shownOpen = null;
+
     function rowEl(key, word, opts = {}) {
       const val = entry[key] || '';
       const solved = val === word;
+      const fx = marksFor(key);
       const row = h('div', {
-        class: 'rung' + (key === active ? ' active' : '') + (solved ? ' solved' : '') + (opts.locked ? ' locked' : '') + (opts.end ? ' end' : '') + (opts.move && !done ? ' draggable' : ''),
+        class: 'rung' + (key === active ? ' active' : '') + (solved ? ' solved' : '') + (opts.locked ? ' locked' : '') + (opts.end ? ' end' : '') + (opts.move && !done ? ' draggable' : '') + fx.map((m) => ' ' + m.cls).join(''),
+        style: fx.length ? { '--t0': `${-Math.round(performance.now() - fx[0].t0)}ms` } : null,
         role: 'listitem', 'data-key': key, 'data-pos': opts.move ? opts.pos : null,
         onClick: () => { if (justDragged) return; if (!opts.locked && !done) { active = key; render(); } },
       },
       h('div', { class: 'rung-letters', 'aria-label': opts.locked ? 'Locked' : val || 'Empty' },
-        Array.from({ length: len }, (_, i) => h('span', { class: 'tile' + (val[i] ? ' filled' : '') }, opts.locked ? '' : (val[i] || '').toUpperCase()))),
+        Array.from({ length: len }, (_, i) => h('span', {
+          class: 'tile' + (val[i] ? ' filled' : '') + (typed && typed.key === key && typed.i === i && performance.now() - typed.t0 < 250 ? ' in' : ''),
+          style: { '--i': i },
+        }, opts.locked ? '' : (val[i] || '').toUpperCase()))),
       opts.move && !done ? h('span', { class: 'rung-grip', 'aria-hidden': 'true' }, '⠿') : null);
       return row;
     }
@@ -104,11 +120,25 @@ export default {
       // once the rungs are solved, flip a ladder built upside down so the ends read top to bottom
       if (allMidSolved() && ordered() && reversed()) order.reverse();
       const open = unlocked();
+      // the ends unlock: their tiles flip open and the rails light up
+      if (open && shownOpen === false) { mark('top', 'unlock', 1000); mark('bottom', 'unlock', 1000); }
+      shownOpen = open;
+      // FLIP: rows that change places (a drop, a hint, the ladder turning right side up) spring there
+      const before = new Map([...list.children].map((el) => [el.dataset.key, el.getBoundingClientRect().top]));
       const rows = [rowEl('top', endWord('top').word, { locked: !open, end: true })];
       order.forEach((idx, pos) => rows.push(rowEl('m' + idx, mids[idx].word, { move: p.scramble, pos, first: pos === 0, last: pos === order.length - 1 })));
       rows.push(rowEl('bottom', endWord('bottom').word, { locked: !open, end: true }));
+      rows.forEach((el, j) => el.style.setProperty('--up', rows.length - 1 - j));
       put(list, ...rows);
+      if (!calm() && before.size) rows.forEach((el) => {
+        const y0 = before.get(el.dataset.key);
+        if (y0 == null) return;
+        const dy = y0 - el.getBoundingClientRect().top;
+        if (Math.abs(dy) > 1) el.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 480, easing: 'cubic-bezier(0.25, 1.45, 0.45, 1)' });
+      });
       put(clueBox, clueText());
+      if (active !== shownActive && !calm()) clueBox.firstChild?.classList.add('swap');
+      shownActive = active;
       if (!done) {
         if (!allMidSolved()) status.textContent = `${mids.filter((_, i) => midSolved(i)).length} of ${mids.length} rungs solved`;
         else if (!ordered()) status.textContent = 'All rungs solved. Now order them so each step changes one letter.';
@@ -118,6 +148,8 @@ export default {
         done = true;
         list.classList.add('solved');
         status.textContent = 'Top to bottom, one letter at a time.';
+        // win: the rungs light up one after another, climbing from the bottom
+        if (!calm()) { list.classList.add('climb'); setTimeout(() => list.classList.remove('climb'), 1600); }
         ctx.solved();
       }
       ctx.save({ order, entry, active, done });
@@ -154,9 +186,10 @@ export default {
         v += k;
       } else return;
       entry[active] = v;
+      if (k.length === 1) typed = { key: active, i: v.length - 1, t0: performance.now() };
       if (v.length === len) {
-        if (v === target) { render(); active = nextOpen(); }
-        else { render(); const el = list.querySelector(`[data-key="${active}"]`); if (el) shake(el); ctx.toast('Not quite'); return; }
+        if (v === target) { mark(active, 'just'); render(); active = nextOpen(); }
+        else { mark(active, 'nope', 450); render(); const el = list.querySelector(`[data-key="${active}"]`); if (el) shake(el); ctx.toast('Not quite'); return; }
       }
       render();
     }
@@ -191,7 +224,8 @@ export default {
       while (pos < v.length && v[pos] === t[pos]) pos++;
       entry[key] = t.slice(0, pos + 1);
       active = key;
-      if (entry[key] === t) { render(); active = nextOpen(); }
+      typed = { key, i: pos, t0: performance.now() };
+      if (entry[key] === t) { mark(key, 'just'); render(); active = nextOpen(); }
       render();
       return `Filled letter ${pos + 1}`;
     }

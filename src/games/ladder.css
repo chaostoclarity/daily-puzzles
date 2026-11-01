@@ -1,0 +1,73 @@
+/* ---------- Crissclimb ----------
+   The one bold thing: it's a ladder. Every rung's tiles sit between two rails that run the
+   full height of the board. Typed letters press in; a solved rung's tiles flip over to the
+   game's color one after another; a wrong one flashes red and shakes. Dragged rungs lift off
+   the rails and spring into place when dropped. When the middle is done the locked ends flip
+   open and the rails light up; the win climbs the ladder from the bottom rung to the top. */
+.game-ladder {
+  --ld-rail: color-mix(in srgb, var(--g) 42%, var(--surface));
+  --ld-rail-edge: color-mix(in srgb, var(--g) 55%, var(--surface));
+}
+.game-ladder .clue-bar { overflow: hidden; }
+.game-ladder .clue-bar > div.swap { animation: ld-clue 0.28s cubic-bezier(0.2, 0.9, 0.3, 1.1); }
+@keyframes ld-clue { from { transform: translateY(8px); opacity: 0; } }
+
+.game-ladder .ladder { gap: 2px; padding: 0 2px; }
+.game-ladder .ladder.solved { animation: none; }
+/* every rung keeps the same columns, so tiles (and rails) line up whether or not a rung has a grip */
+.game-ladder .ladder:has(.rung-grip) .rung { grid-template-columns: 1fr 22px; }
+.game-ladder .rung { padding: 4px 12px; position: relative; }
+.game-ladder .rung.solved { animation: none; }
+.game-ladder .rung.active { background: color-mix(in srgb, var(--g) 9%, transparent); }
+.game-ladder .rung-grip { padding: 0; text-align: center; }
+
+/* the rails: each rung carries its stretch, overlapping the next so they read as one */
+.game-ladder .rung-letters { position: relative; isolation: isolate; }
+.game-ladder .rung-letters::before, .game-ladder .rung-letters::after {
+  content: ''; position: absolute; top: -10px; bottom: -10px; width: 7px; z-index: -1; border-radius: 2px;
+  background: var(--ld-rail); box-shadow: inset 1px 0 0 var(--ld-rail-edge), inset -1px 0 0 var(--ld-rail-edge);
+  transition: background-color 0.4s ease;
+}
+.game-ladder .rung-letters::before { left: -10px; }
+.game-ladder .rung-letters::after { right: -10px; }
+.game-ladder .rung:first-child .rung-letters::before, .game-ladder .rung:first-child .rung-letters::after { top: -4px; border-radius: 4px 4px 2px 2px; }
+.game-ladder .rung:last-child .rung-letters::before, .game-ladder .rung:last-child .rung-letters::after { bottom: -4px; border-radius: 2px 2px 4px 4px; }
+
+/* tiles: pressed into the rung like blocks */
+.game-ladder .rung .tile { box-shadow: 0 2px 0 var(--line); transition: border-color 0.15s ease; }
+.game-ladder .rung .tile.filled { border-color: color-mix(in srgb, var(--ink) 55%, var(--line)); }
+.game-ladder .rung.active .tile:not(.filled) { border-color: color-mix(in srgb, var(--g) 45%, var(--line)); }
+.game-ladder .rung .tile.in { animation: ld-type 0.2s cubic-bezier(0.3, 1.7, 0.5, 1); }
+@keyframes ld-type { 0% { transform: scale(0.8); } 55% { transform: scale(1.08); } }
+.game-ladder .rung.solved .tile { box-shadow: 0 2px 0 color-mix(in srgb, var(--g) 65%, #000); }
+.game-ladder .rung.locked .tile { box-shadow: none; }
+
+/* a rung solved: tiles flip over one by one */
+.game-ladder .rung.just .tile { animation: ld-flip 0.5s cubic-bezier(0.3, 1.3, 0.5, 1) backwards; animation-delay: calc(var(--i) * 70ms + var(--t0, 0ms)); }
+@keyframes ld-flip { 0% { transform: rotateX(0) scale(1); } 45% { transform: rotateX(90deg) scale(1.04); } 100% { transform: rotateX(0); } }
+/* the tile's blank face covers it until the flip passes edge-on (opacity only: colors don't animate) */
+.game-ladder .rung .tile { position: relative; }
+.game-ladder .rung .tile::after { content: ''; position: absolute; inset: -2px; border-radius: 6px; background: var(--surface); border: 2px solid var(--line); opacity: 0; pointer-events: none; }
+.game-ladder .rung.just .tile::after { animation: ld-face 0.5s linear backwards; animation-delay: calc(var(--i) * 70ms + var(--t0, 0ms)); }
+@keyframes ld-face { 0%, 44% { opacity: 1; } 45%, 100% { opacity: 0; } }
+/* a wrong one: red for a moment */
+.game-ladder .rung.nope .tile { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, var(--surface)); }
+/* the ends unlock: dashed boxes flip open and the rails glow up and down the ladder */
+.game-ladder .rung.unlock .tile { animation: ld-open 0.55s cubic-bezier(0.3, 1.4, 0.5, 1) backwards; animation-delay: calc(var(--i) * 60ms + var(--t0, 0ms)); }
+@keyframes ld-open { 0% { transform: rotateY(90deg) scale(0.9); } }
+.game-ladder .rung.unlock::after {
+  content: ''; position: absolute; inset: 0; border-radius: 10px; pointer-events: none;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--g) 50%, transparent); animation: ld-ring 0.8s ease-out backwards; animation-delay: var(--t0, 0ms);
+}
+@keyframes ld-ring { 0% { box-shadow: 0 0 0 0 rgb(243 193 27 / 0.75); } 100% { box-shadow: 0 0 0 12px rgb(243 193 27 / 0); } }
+.game-ladder .ladder:has(.rung.unlock) .rung-letters::before, .game-ladder .ladder:has(.rung.unlock) .rung-letters::after { background: var(--g); }
+
+/* dragging: the rung lifts off the rails, its neighbors make room with a little bounce */
+.game-ladder .rung.draggable { transition: transform 0.22s cubic-bezier(0.3, 1.4, 0.5, 1), box-shadow 0.2s ease; }
+.game-ladder .rung.dragging { transition: none; background: var(--surface); box-shadow: 0 12px 26px rgb(10 14 22 / 0.22), 0 0 0 2px var(--g); scale: 1.03; }
+.game-ladder .rung.dragging .rung-grip { color: var(--g); }
+
+/* win: rung by rung, from the bottom to the top */
+.game-ladder .ladder.climb .rung .tile { animation: ld-climb 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) backwards; animation-delay: calc(var(--up) * 85ms + var(--i) * 22ms + 150ms); }
+@keyframes ld-climb { 0% { transform: none; } 40% { transform: translateY(-7px) scale(1.1); } }
+.game-ladder .ladder.climb .rung-letters::before, .game-ladder .ladder.climb .rung-letters::after { background: var(--g); }
