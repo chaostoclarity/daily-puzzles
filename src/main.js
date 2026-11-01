@@ -1,3 +1,4 @@
+import { celebrate, centerOf } from './lib/celebrate.js';
 import './fonts.css';
 import './style.css';
 import wordsJson from './data/words.json';
@@ -91,10 +92,10 @@ function toast(msg) {
 }
 
 // ---------- sheet (in-page dialog) ----------
-function sheet(content, { onClose } = {}) {
+function sheet(content, { onClose, cls = '' } = {}) {
   const close = () => { wrap.remove(); document.removeEventListener('keydown', esc); onClose?.(); };
   const esc = (e) => { if (e.key === 'Escape') close(); };
-  const panel = h('div', { class: 'sheet', role: 'dialog', 'aria-modal': 'true', tabindex: '-1' }, content(close));
+  const panel = h('div', { class: 'sheet' + (cls ? ' ' + cls : ''), role: 'dialog', 'aria-modal': 'true', tabindex: '-1' }, content(close));
   const wrap = h('div', { class: 'sheet-wrap', onClick: (e) => { if (e.target === wrap) close(); } }, panel);
   document.body.append(wrap);
   document.addEventListener('keydown', esc);
@@ -304,8 +305,12 @@ function buildGame(g) {
       const tag = document.querySelector('.record-tag');
       if (tag) { tag.textContent = recordLine(g, d); tag.hidden = false; }
     },
+    // extra celebration moments inside a game (Spilling Bee's Queen Bee)
+    celebrate: (opts = {}) => celebrate({ shape: g.confetti || 'mix', ...opts }),
     solved: (summary, score) => {
       stop();
+      // the win moment: confetti in the game's color, bursting from the board
+      celebrate({ shape: g.confetti || 'mix', origin: centerOf(body.querySelector('.board, .hive') || body) });
       store.set(`dp:done:${sk}`, secs);
       // personal records: hint-free solves only, so a record means you did it yourself
       const hints = store.get(hintKey, 0);
@@ -338,7 +343,7 @@ function buildGame(g) {
           h('button', { class: 'btn', type: 'button', onClick: () => { close(); location.hash = ''; } }, 'All games'),
           h('button', { class: 'btn primary', type: 'button', onClick: () => { close(); newPuzzle(); } }, 'New puzzle')),
         h('button', { class: 'link', type: 'button', onClick: close }, 'Look at the board'),
-      ]), 550);
+      ], { cls: 'win' }), 750);
     },
   };
 
