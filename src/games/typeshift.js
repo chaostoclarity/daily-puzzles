@@ -14,10 +14,12 @@ export default {
     'Each column holds a few letters. Drag a column up or down, or tap a letter, to move it into the middle row.',
     'When the middle row spells a word, it counts and its letters turn solid.',
     'Use every letter at least once to win. Par is the fewest words that can do it.',
+    'A hint moves one column toward a word you haven\'t found yet.',
   ],
   mount(root, ctx) {
     const p = ctx.puzzle;
     const saved = ctx.load();
+    let hintWord = saved?.hintWord || null; // the word hints are steering toward
     const pos = saved?.pos || p.start.slice();
     const found = saved?.found || [];
     const used = new Set(saved?.used || []);
@@ -124,23 +126,28 @@ export default {
       put(meter, `${total - used.size} letter${total - used.size === 1 ? '' : 's'} left · ${found.length} word${found.length === 1 ? '' : 's'} · par ${p.par}`);
       put(list, found.map((f) => h('span', { class: 'ts-chip' }, f.toUpperCase())));
       board.classList.toggle('solved', done);
-      ctx.save({ pos, found, used: [...used], done });
+      ctx.save({ pos, found, used: [...used], done, hintWord });
     }
     render();
 
     return {
       hint() {
         if (done) return false;
-        // line up the unfound word that uses the most unused letters
-        const options = p.cover.concat(p.planted).filter((w) => !found.includes(w));
-        options.sort((a, b) => [...b].filter((ch, i) => !used.has(i + ':' + ch)).length - [...a].filter((ch, i) => !used.has(i + ':' + ch)).length);
-        const w = options[0];
-        if (!w) return false;
-        [...w].forEach((ch, i) => { pos[i] = p.cols[i].indexOf(ch); });
-        take(w);
-        finishIfDone();
+        // move one column toward a word worth finding, the way Typeshift's hints work
+        const gain = (w) => [...w].filter((ch, i) => !used.has(i + ':' + ch)).length;
+        if (!hintWord || found.includes(hintWord)) {
+          const options = p.cover.concat(p.planted).filter((w) => !found.includes(w) && gain(w) > 0);
+          options.sort((a, b) => gain(b) - gain(a));
+          hintWord = options[0] || null;
+        }
+        if (!hintWord) return false;
+        const i = [...hintWord].findIndex((ch, k) => p.cols[k][pos[k]] !== ch);
+        if (i < 0) { check(); render(); return `${hintWord.toUpperCase()} is lined up`; }
+        pos[i] = p.cols[i].indexOf(hintWord[i]);
+        const left = [...hintWord].filter((ch, k) => p.cols[k][pos[k]] !== ch).length;
+        check();
         render();
-        return `Lined up ${w.toUpperCase()}`;
+        return left ? `Moved column ${i + 1}. ${left} more to go for this word` : `Moved column ${i + 1}`;
       },
       reveal() {
         for (const w of p.cover) take(w);
