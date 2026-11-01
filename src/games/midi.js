@@ -1,3 +1,4 @@
+import './midi.css';
 import mini from './mini.js';
 import { generateMidi } from '../gen/mini.js';
 

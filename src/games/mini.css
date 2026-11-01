@@ -1,0 +1,90 @@
+/* ---------- The Mino (and The Mido, which shares this code) ----------
+   The one bold thing: a crisp printed crossword. Hairline ruled squares on paper inside a heavy
+   ink frame, solid ink blocks, small clue numbers. Two highlights live under the paper: the
+   entry band and the square cursor glide from place to place (sliding under the blocks).
+   Letters press in, a newly filled entry gets a sweep, and a solve cascades across the grid. */
+:is(.game-mini, .game-midi) {
+  --rule: color-mix(in srgb, var(--block) 72%, var(--surface));
+  --band: color-mix(in srgb, var(--g) 20%, var(--surface));
+  --cursor: color-mix(in srgb, var(--mark) 60%, var(--surface));
+  --glide: cubic-bezier(0.3, 1.15, 0.4, 1);
+}
+:is(.game-mini, .game-midi) .mini-grid {
+  position: relative; isolation: isolate; gap: 0; background: var(--surface);
+  border: 2.5px solid var(--block); border-radius: 3px;
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.04), 0 14px 26px -16px rgb(0 0 0 / 0.45);
+}
+:is(.game-mini, .game-midi) .mini-grid.solved { animation: none; }
+:is(.game-mini, .game-midi) .mini-cell {
+  z-index: 1; background: transparent; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+}
+:is(.game-mini, .game-midi) .mini-cell.lc { border-right: 0; }
+:is(.game-mini, .game-midi) .mini-cell.lr { border-bottom: 0; }
+:is(.game-mini, .game-midi) .mini-cell.block { background: var(--block); border-color: var(--block); }
+/* the old per-square fills are replaced by the gliding highlights below */
+:is(.game-mini, .game-midi) .mini-cell.word, :is(.game-mini, .game-midi) .mini-cell.cur { background: transparent; }
+
+:is(.game-mini, .game-midi) .mc-band, :is(.game-mini, .game-midi) .mc-cursor {
+  position: absolute; z-index: 0; pointer-events: none;
+  left: calc(var(--c, 0) * 100% / var(--n)); top: calc(var(--r, 0) * 100% / var(--n));
+  width: calc(var(--w, 1) * 100% / var(--n)); height: calc(var(--h, 1) * 100% / var(--n));
+  transition: left 0.28s var(--glide), top 0.28s var(--glide), width 0.28s var(--glide), height 0.28s var(--glide), opacity 0.4s ease;
+}
+:is(.game-mini, .game-midi) .mc-band { background: var(--band); }
+:is(.game-mini, .game-midi) .mc-cursor { background: var(--cursor); transition-duration: 0.17s, 0.17s, 0.17s, 0.17s, 0.4s; }
+:is(.game-mini, .game-midi) .mini-grid.done .mc-band, :is(.game-mini, .game-midi) .mini-grid.done .mc-cursor { opacity: 0; }
+
+:is(.game-mini, .game-midi) .mini-num {
+  top: 2px; left: 3px; line-height: 1; font-family: var(--f-body); font-weight: 700;
+  font-size: clamp(0.55rem, calc(19cqw / var(--n)), 0.82rem); color: var(--ink); opacity: 0.72;
+}
+:is(.game-mini, .game-midi) .mini-letter { display: inline-block; line-height: 1; margin-top: 8%; }
+
+/* a typed letter presses into the paper */
+:is(.game-mini, .game-midi) .mini-cell.pop .mini-letter { animation: mc-pop 0.2s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes mc-pop { 0% { transform: scale(0.55); opacity: 0.3; } 60% { transform: scale(1.12); } }
+
+/* an entry that's just been filled: a light sweep runs along it and its letters hop in turn */
+:is(.game-mini, .game-midi) .mini-cell.sweep { animation: mc-sweep 0.5s ease; animation-delay: calc(var(--k, 0) * 45ms); }
+:is(.game-mini, .game-midi) .mini-cell.sweep .mini-letter { animation: mc-hop 0.5s cubic-bezier(0.3, 1.4, 0.5, 1); animation-delay: calc(var(--k, 0) * 45ms); }
+@keyframes mc-sweep { 0% { background: transparent; } 30% { background: color-mix(in srgb, var(--g) 30%, transparent); } 100% { background: transparent; } }
+@keyframes mc-hop { 0%, 100% { transform: none; } 35% { transform: translateY(-14%) scale(1.1); } }
+
+/* Check: wrong squares shake their letters, right ones give a quick green nod */
+:is(.game-mini, .game-midi) .mini-cell.nope .mini-letter { animation: mc-nope 0.42s ease; }
+@keyframes mc-nope { 20%, 60% { transform: translateX(-12%); } 40%, 80% { transform: translateX(12%); } }
+:is(.game-mini, .game-midi) .mini-cell.okay { animation: mc-okay 0.6s ease; }
+@keyframes mc-okay { 30% { background: color-mix(in srgb, var(--hit) 28%, transparent); } }
+:is(.game-mini, .game-midi) .mini-cell.wrong::after { transform-origin: center; }
+
+/* solved: a wave of color washes across the grid from the top left, letters bobbing as it passes */
+:is(.game-mini, .game-midi) .mini-grid.win { animation: mc-frame 1.4s ease 0.2s; }
+@keyframes mc-frame { 30% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--g) 40%, transparent), 0 14px 30px -10px color-mix(in srgb, var(--g) 60%, transparent); } }
+:is(.game-mini, .game-midi) .mini-grid.win .mini-cell:not(.block) { animation: mc-wash 0.75s ease backwards; animation-delay: calc(var(--d) * 55ms); }
+:is(.game-mini, .game-midi) .mini-grid.win .mini-cell .mini-letter,
+:is(.game-mini, .game-midi) .mini-grid.win .mini-cell .mini-num { animation: mc-wash-ink 0.75s cubic-bezier(0.3, 1.2, 0.5, 1) backwards; animation-delay: calc(var(--d) * 55ms); }
+@keyframes mc-wash { 0% { background: transparent; } 28% { background: var(--g); } 100% { background: transparent; } }
+@keyframes mc-wash-ink { 0% { transform: none; } 28% { transform: translateY(-10%) scale(1.14); color: var(--on-color); } 100% { transform: none; } }
+/* Show answer: the letters come up across the grid in quieter ink */
+:is(.game-mini, .game-midi) .mini-grid.shown .mini-cell .mini-letter { animation: mc-show 0.45s ease backwards; animation-delay: calc(var(--d) * 40ms); }
+@keyframes mc-show { from { opacity: 0; transform: translateY(20%); } }
+
+/* clue bar: a printed clue strip; the clue slides through as you move between entries */
+:is(.game-mini, .game-midi) .mini-bar { display: flex; align-items: center; gap: 10px; overflow: hidden; }
+:is(.game-mini, .game-midi) .mini-bar::after { content: '›'; margin-left: auto; font-size: 1.5rem; line-height: 1; color: var(--muted); }
+:is(.game-mini, .game-midi) .mini-bar:active::after { transform: translateX(3px); }
+:is(.game-mini, .game-midi) .mc-clue { flex: 1; min-width: 0; }
+:is(.game-mini, .game-midi) .mc-clue.in { animation: mc-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1); }
+:is(.game-mini, .game-midi) .mc-clue.in-back { animation: mc-in-back 0.28s cubic-bezier(0.2, 0.9, 0.3, 1); }
+@keyframes mc-in { from { transform: translateX(26px); opacity: 0; } }
+@keyframes mc-in-back { from { transform: translateX(-26px); opacity: 0; } }
+
+/* clue lists: the active clue carries a rule in the game's color */
+:is(.game-mini, .game-midi) .mini-list li { transition: background-color 0.2s ease, box-shadow 0.2s ease; }
+:is(.game-mini, .game-midi) .mini-list li.on { box-shadow: inset 3px 0 0 var(--g); }
+
+/* keys press down */
+:is(.game-mini, .game-midi) .kb-key { transition: transform 0.08s ease; }
+:is(.game-mini, .game-midi) .kb-key:active { transform: translateY(1px) scale(0.94); }
+/* the whole grid filling at once (Show answer) gets its own wave, not a sweep per entry */
+:is(.game-mini, .game-midi) .mini-grid.shown .mini-cell { animation: none; }
