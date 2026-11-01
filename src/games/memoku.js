@@ -51,7 +51,7 @@ export default {
         const [a, b] = open;
         if (p.grid[a] === p.grid[b]) {
           up[a] = up[b] = true; open = [];
-          if (up.every(Boolean)) { done = true; render(); ctx.solved(`${misses} miss${misses === 1 ? '' : 'es'}`); return; }
+          if (up.every(Boolean)) { done = true; render(); ctx.solved(`${misses} miss${misses === 1 ? '' : 'es'}`, { value: misses, higher: false, fmt: (v) => `${v} miss${v === 1 ? '' : 'es'}` }); return; }
         } else {
           misses++;
           timer = setTimeout(() => { settle(); render(); }, 900);
@@ -89,7 +89,7 @@ export default {
         if (!v) return false;
         const [a, b] = hidden[v];
         up[a] = up[b] = true;
-        if (up.every(Boolean)) { done = true; render(); ctx.solved(`${misses} miss${misses === 1 ? '' : 'es'}`); return `Found a pair of ${v}s`; }
+        if (up.every(Boolean)) { done = true; render(); ctx.solved(`${misses} miss${misses === 1 ? '' : 'es'}`, { value: misses, higher: false, fmt: (v) => `${v} miss${v === 1 ? '' : 'es'}` }); return `Found a pair of ${v}s`; }
         render();
         return `Found a pair of ${v}s`;
       },

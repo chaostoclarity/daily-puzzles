@@ -65,6 +65,19 @@ const extraKey = (g, d) => `dp:n:${today()}|${g.id}|${d}`;
 const seedKey = (g, d, n) => `${today()}|${g.id}|${d}|${n}`;
 // Saved progress is keyed by seed plus the game's version, so when a generator changes,
 // old saves for the same day don't get loaded onto a different board.
+// Personal records per game and difficulty: fastest hint-free time, best score where the
+// game has one, and how many times it's been solved. Not tied to a date, so they persist.
+const recordKey = (g, d) => `dp:pr:${g.id}:${d}`;
+const getRecord = (g, d) => store.get(recordKey(g, d), null);
+const fmtScore = (sc, v) => (sc.fmt ? sc.fmt(v) : String(v));
+const recordLine = (g, d) => {
+  const r = getRecord(g, d);
+  if (!r) return '';
+  const parts = [];
+  if (r.time != null) parts.push(`best ${fmtTime(r.time)}`);
+  if (r.score != null) parts.push(r.scoreText);
+  return parts.join(' · ');
+};
 const saveKey = (g, d, n) => seedKey(g, d, n) + (g.version ? `#v${g.version}` : '');
 
 // ---------- toast ----------
@@ -88,6 +101,23 @@ function sheet(content, { onClose } = {}) {
   // focus the dialog itself so a key held from typing can't press a button by accident
   panel.focus({ preventScroll: true });
   return close;
+}
+
+function recordsSheet() {
+  sheet((close) => [
+    h('div', { class: 'sheet-head' }, h('h2', {}, 'Personal records')),
+    h('p', { class: 'muted-small' }, 'Fastest hint-free solve and best score for each difficulty.'),
+    h('div', { class: 'records' },
+      h('div', { class: 'rec-row rec-headrow' }, h('span', {}, ''), ...DIFFS.map(([, l]) => h('span', {}, l))),
+      ...GAMES.map((g) => h('div', { class: 'rec-row', style: { '--g': `var(--g-${g.id})` } },
+        h('span', { class: 'rec-game' }, h('span', { class: 'rec-icon', html: ICONS[g.id] }), g.name),
+        ...DIFFS.map(([d]) => {
+          const r = getRecord(g, d);
+          if (!r) return h('span', { class: 'rec-empty' }, '·');
+          return h('span', {}, r.time != null ? h('b', {}, fmtTime(r.time)) : h('i', {}, `${r.solves}×`), r.scoreText ? h('small', {}, r.scoreText) : null);
+        })))),
+    h('button', { class: 'btn primary wide', type: 'button', onClick: close }, 'Done'),
+  ]);
 }
 
 function rulesSheet(g) {
@@ -141,7 +171,7 @@ function renderHome() {
   put(app, h('main', { class: 'home' },
     h('header', { class: 'home-head' },
       h('p', { class: 'eyebrow' }, prettyDate()),
-      h('h1', {}, 'Daily Puzzles'),
+      h('h1', {}, 'Daily Puzzles', h('button', { class: 'link records-link', type: 'button', onClick: recordsSheet }, 'Records')),
       h('p', { class: 'home-sub' }, solvedCount === GAMES.length ? `All ${GAMES.length} solved today. New set at midnight.` : `${solvedCount} of ${GAMES.length} solved today. New puzzles every midnight.` + (favs.length ? '' : ' Tap ☆ to pin a game to the top.'))),
     h('nav', { class: 'sections', 'aria-label': 'Games' }, sections.map(([title, list]) => h('section', { class: 'section' + (title === 'Favorites' ? ' favs' : '') },
       h('h2', { class: 'section-title' }, title),
@@ -218,7 +248,7 @@ function buildGame(g) {
     body,
     h('footer', { class: 'toolbar' },
       h('div', { class: 'toolbar-row' },
-        h('span', { class: 'puzzle-label' }, label,
+        h('span', { class: 'puzzle-label' }, label, recordLine(g, d) ? h('span', { class: 'record-tag' }, recordLine(g, d)) : null,
           n > 0 ? h('button', { class: 'link', type: 'button', onClick: () => { store.set(extraKey(g, d), 0); renderGame(g); } }, 'Back to today') : null),
         h('span', { class: 'toolbar-btns' },
           revealBtn,
@@ -265,14 +295,36 @@ function buildGame(g) {
     load: () => store.get(`dp:s:${sk}`),
     save: (state) => store.set(`dp:s:${sk}`, state),
     finished: () => stop(),
-    solved: (summary) => {
+    solved: (summary, score) => {
       stop();
       store.set(`dp:done:${sk}`, secs);
+      // personal records: hint-free solves only, so a record means you did it yourself
+      const hints = store.get(hintKey, 0);
+      const prev = getRecord(g, d) || { solves: 0 };
+      const rec = { ...prev, solves: (prev.solves || 0) + 1 };
+      const news = [];
+      if (!hints) {
+        if (prev.time == null || secs < prev.time) {
+          if (prev.time != null) news.push(`New best time! ${fmtTime(secs)} (was ${fmtTime(prev.time)})`);
+          else news.push(`First hint-free solve on ${DIFFS.find((x) => x[0] === d)[1]}: ${fmtTime(secs)}`);
+          rec.time = secs; rec.timeOn = today();
+        }
+        if (score && Number.isFinite(score.value)) {
+          const better = prev.score == null || (score.higher ? score.value > prev.score : score.value < prev.score);
+          if (better) {
+            if (prev.score != null) news.push(`New ${score.higher ? 'high' : 'low'} score: ${fmtScore(score, score.value)} (was ${prev.scoreText})`);
+            rec.score = score.value; rec.scoreText = fmtScore(score, score.value); rec.higher = !!score.higher; rec.scoreOn = today();
+          }
+        }
+      }
+      store.set(recordKey(g, d), rec);
       const mine = active;
       setTimeout(() => active === mine && sheet((close) => [
         h('div', { class: 'sheet-head' }, h('span', { class: 'sheet-icon', style: { '--g': `var(--g-${g.id})` }, html: ICONS[g.id] }), h('h2', {}, summary ? `${g.name}: ${summary}` : `${g.name} solved`)),
         h('p', { class: 'big-time' }, fmtTime(secs)),
-        h('p', {}, `${DIFFS.find((x) => x[0] === d)[1]} · ${label}` + (store.get(hintKey, 0) ? ` · ${store.get(hintKey, 0)} hint${store.get(hintKey, 0) > 1 ? 's' : ''}` : '')),
+        news.length ? news.map((t) => h('p', { class: 'record-new' }, t)) : null,
+        h('p', {}, `${DIFFS.find((x) => x[0] === d)[1]} · ${label}` + (hints ? ` · ${hints} hint${hints > 1 ? 's' : ''} (records count hint-free solves)` : '')),
+        h('p', { class: 'record-line' }, [recordLine(g, d), `solved ${rec.solves} time${rec.solves === 1 ? '' : 's'}`].filter(Boolean).join(' · ')),
         h('div', { class: 'sheet-actions' },
           h('button', { class: 'btn', type: 'button', onClick: () => { close(); location.hash = ''; } }, 'All games'),
           h('button', { class: 'btn primary', type: 'button', onClick: () => { close(); newPuzzle(); } }, 'New puzzle')),

@@ -93,7 +93,7 @@ export default {
         h('span', {}, h('b', {}, left), ' tiles left'));
       if (!done && left === 0) {
         done = true; grid.classList.add('solved');
-        ctx.solved(`best combo ${best}`);
+        ctx.solved(`best combo ${best}`, { value: best, higher: true, fmt: (v) => `combo ${v}` });
       }
       ctx.save({ tiles, combo, best, moves, done });
     }

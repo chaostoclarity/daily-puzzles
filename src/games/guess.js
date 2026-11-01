@@ -88,7 +88,7 @@ export default {
         if (won) over = 'won';
         else if (history.length >= tries) over = 'lost';
         render(history.length - 1);
-        if (won) ctx.solved();
+        if (won) ctx.solved(`in ${history.length}`, { value: history.length, higher: false, fmt: (v) => `${v} guess${v > 1 ? 'es' : ''}` });
         if (over === 'lost') ctx.finished?.();
         return;
       } else if (k.length === 1 && cur.length < len) cur += k;

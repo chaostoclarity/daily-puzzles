@@ -51,7 +51,7 @@ export default {
           class: 'btn primary next', type: 'button',
           onClick: () => {
             if (idx < questions.length - 1) { idx++; render(); }
-            else { done = true; render(); ctx.solved(`${right}/${questions.length}`); }
+            else { done = true; render(); ctx.solved(`${right}/${questions.length}`, { value: right, higher: true, fmt: (v) => `${v}/${questions.length}` }); }
           },
         }, idx < questions.length - 1 ? 'Next' : 'See score') : null);
       const nb = body.querySelector('.next');

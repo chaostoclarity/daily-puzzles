@@ -91,7 +91,7 @@ export default {
         const s = scoreBoard(n, grid, discards);
         render();
         const k = starsEarned(s.total);
-        ctx.solved(`${starText(k)} ${money(s.total)}` + (k < 3 ? ` (${money(goal[k])} for ${k + 1} star${k ? 's' : ''})` : ' · beat the bot'));
+        ctx.solved(`${starText(k)} ${money(s.total)}` + (k < 3 ? ` (${money(goal[k])} for ${k + 1} star${k ? 's' : ''})` : ' · beat the bot'), { value: s.total, higher: true, fmt: money });
         return;
       }
       hand = p.deals[turn].slice();

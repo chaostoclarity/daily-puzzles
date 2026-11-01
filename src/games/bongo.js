@@ -55,7 +55,7 @@ export default {
       best = Math.max(best, grid.every(Boolean) ? s.total : 0);
       if (!done && grid.every(Boolean)) {
         done = true;
-        ctx.solved(`${s.total.toLocaleString()} points (goal ${p.target.toLocaleString()})`);
+        ctx.solved(`${s.total.toLocaleString()} points (goal ${p.target.toLocaleString()})`, { value: s.total, higher: true, fmt: (v) => `${v.toLocaleString()} pts` });
       }
     }
 

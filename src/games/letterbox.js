@@ -100,7 +100,7 @@ export default {
       if (!done && words.length && missing === 0) {
         done = true; svg.classList.add('solved');
         status.textContent = words.length <= p.par ? `Solved in ${words.length} words. Under target.` : `Solved in ${words.length} words.`;
-        ctx.solved(`${words.length} word${words.length > 1 ? 's' : ''}`);
+        ctx.solved(`${words.length} word${words.length > 1 ? 's' : ''}`, { value: words.length, higher: false, fmt: (v) => `${v} word${v > 1 ? 's' : ''}` });
       }
       ctx.save({ words, cur, done, hintN });
     }

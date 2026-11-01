@@ -50,7 +50,7 @@ export default {
       if (solved()) {
         over = 'won';
         const spare = left();
-        ctx.solved(`${spare} swap${spare === 1 ? '' : 's'} to spare (${'★'.repeat(spare)}${'☆'.repeat(Math.max(0, 5 - spare))})`);
+        ctx.solved(`${spare} swap${spare === 1 ? '' : 's'} to spare (${'★'.repeat(spare)}${'☆'.repeat(Math.max(0, 5 - spare))})`, { value: spare, higher: true, fmt: (v) => `${v} spare` });
       } else if (left() <= 0) {
         over = 'lost';
         ctx.finished?.();

@@ -49,7 +49,7 @@ export default {
       if (levels.every((l) => l === lvl)) {
         solved.push(lvl);
         pick = [];
-        if (solved.length === 4) { over = 'won'; render(); ctx.solved(mistakes ? `${mistakes} mistake${mistakes > 1 ? 's' : ''}` : 'perfect'); return; }
+        if (solved.length === 4) { over = 'won'; render(); ctx.solved(mistakes ? `${mistakes} mistake${mistakes > 1 ? 's' : ''}` : 'perfect', { value: mistakes, higher: false, fmt: (v) => (v ? `${v} mistake${v > 1 ? 's' : ''}` : 'perfect') }); return; }
         return render();
       }
       mistakes++;

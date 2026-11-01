@@ -108,7 +108,7 @@ export default {
     function finishIfDone() {
       if (done || used.size < total) return;
       done = true;
-      ctx.solved(`${found.length} word${found.length === 1 ? '' : 's'}, par ${p.par}`);
+      ctx.solved(`${found.length} word${found.length === 1 ? '' : 's'}, par ${p.par}`, { value: found.length - p.par, higher: false, fmt: (v) => (v > 0 ? `par +${v}` : v < 0 ? `par ${v}` : 'par') });
     }
 
     function render() {

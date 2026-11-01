@@ -56,7 +56,7 @@ export default {
     function check() {
       if (!done && solvedBy(p, turns)) {
         done = true;
-        ctx.solved(`${taps} turn${taps === 1 ? '' : 's'}, par ${p.par}`);
+        ctx.solved(`${taps} turn${taps === 1 ? '' : 's'}, par ${p.par}`, { value: taps - p.par, higher: false, fmt: (v) => (v ? `par +${v}` : 'par') });
       }
     }
 
