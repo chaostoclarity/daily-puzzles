@@ -1,0 +1,53 @@
+/* ---------- Flipert ----------
+   The one bold thing: chunky block pieces with studs, outlined as solid shapes, that swing a
+   quarter turn round their pivot instead of jumping. The frame is a tray with faint squares to
+   count by. Filling it sends a shimmer across the frame and a pop through the pieces. */
+
+.game-flipart {
+  --tray: color-mix(in srgb, var(--g) 5%, var(--surface));
+  --tray-line: color-mix(in srgb, var(--g) 14%, var(--line));
+}
+
+/* ----- frame ----- */
+.game-flipart .fa-board { width: min(100%, 440px, calc(56svh * var(--ratio))); }
+.game-flipart .fa-frame { fill: var(--tray); stroke: var(--ink); stroke-width: 0.09; transition: stroke 0.4s ease; }
+.game-flipart .fa-lines { stroke: var(--tray-line); stroke-width: 0.025; stroke-dasharray: 0.12 0.1; fill: none; pointer-events: none; }
+.game-flipart .fa-svg.solved .fa-frame { stroke: var(--g); }
+
+/* ----- pieces ----- */
+.game-flipart .fa-cell { fill: hsl(var(--hue) 70% 60%); stroke: hsl(var(--hue) 60% 50%); stroke-width: 0.02; transition: fill 0.25s ease; }
+.game-flipart .fa-stud { fill: hsl(var(--hue) 82% 70%); stroke: hsl(var(--hue) 60% 48% / 0.55); stroke-width: 0.03; transition: fill 0.25s ease; }
+.game-flipart .fa-edge { fill: none; stroke: hsl(var(--hue) 55% 30%); stroke-width: 0.08; stroke-linecap: square; transition: stroke 0.4s ease; }
+/* overlapping squares go muted and see-through, so you can tell what's underneath */
+.game-flipart .fa-sq.over .fa-cell { fill: hsl(var(--hue) 18% 64% / 0.72); stroke: hsl(var(--hue) 15% 50% / 0.6); }
+.game-flipart .fa-sq.over .fa-stud { fill: hsl(var(--hue) 20% 72% / 0.6); }
+/* outside the frame: dark, but still the piece's own hue */
+.game-flipart .fa-sq.out .fa-cell { fill: hsl(var(--hue) 30% 20%); stroke: hsl(var(--hue) 25% 14%); }
+.game-flipart .fa-sq.out .fa-stud { fill: hsl(var(--hue) 28% 28%); stroke: hsl(var(--hue) 25% 14%); }
+.game-flipart .fa-dot { fill: #fff; stroke: rgb(0 0 0 / 0.45); stroke-width: 0.025; }
+/* turning: the piece lifts off the board while it swings */
+.game-flipart .fa-piece.lift { filter: drop-shadow(0 0.15px 0.12px rgb(10 14 22 / 0.4)); }
+
+/* solved: the seams soften so the frame reads as one picture */
+.game-flipart .fa-svg.solved .fa-cell { stroke: hsl(var(--hue) 70% 60%); }
+.game-flipart .fa-svg.solved .fa-edge { stroke: color-mix(in srgb, var(--surface) 70%, transparent); }
+
+/* ----- win: pieces pop in turn, then a shimmer runs across the frame ----- */
+.game-flipart .fa-shine { opacity: 0; pointer-events: none; transform-box: fill-box; }
+.game-flipart .fa-svg.win .fa-shine { animation: fa-shine 1.1s cubic-bezier(0.45, 0, 0.25, 1) 0.35s; }
+@keyframes fa-shine { 0% { opacity: 1; transform: translateX(-34%); } 100% { opacity: 1; transform: translateX(34%); } }
+.game-flipart .fa-svg.win .fa-piece { animation: fa-pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) backwards; animation-delay: calc(var(--i, 0) * 70ms); transform-box: fill-box; transform-origin: center; }
+@keyframes fa-pop { 40% { scale: 1.06; } }
+.game-flipart .fa-svg.win .fa-frame { animation: fa-frame 1.2s ease; }
+@keyframes fa-frame { 25% { stroke-width: 0.18; } }
+
+/* ----- meter ----- */
+.game-flipart .fa-meter { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; }
+.game-flipart .fa-meter > span { display: inline-flex; align-items: baseline; gap: 3px; padding: 2px 10px; border-radius: 99px; background: var(--surface); border: 1px solid var(--line); font-size: 0.88rem; }
+.game-flipart .fa-meter b { font-family: var(--f-display); font-size: 1.1rem; color: var(--ink); font-variant-numeric: tabular-nums; display: inline-block; }
+.game-flipart .fa-meter .warn b { color: var(--bad); }
+.game-flipart .fa-meter .clear { border-color: color-mix(in srgb, var(--hit) 55%, var(--line)); }
+.game-flipart .fa-meter .clear b { color: var(--hit); }
+.game-flipart .fa-meter .bump b { animation: fa-bump 0.4s cubic-bezier(0.3, 1.8, 0.5, 1); }
+@keyframes fa-bump { 40% { transform: scale(1.4); } }
+.game-flipart .fa-meter .fa-done { border-color: var(--g); color: var(--ink); font-weight: 700; animation: fa-bump 0.5s cubic-bezier(0.3, 1.6, 0.5, 1); }
