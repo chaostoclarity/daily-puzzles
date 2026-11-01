@@ -1,0 +1,122 @@
+/* ---------- Wordbund ----------
+   The one bold thing: the phrase is a string of letter beads, and the word you type is bound
+   through it by a thread that runs behind the letters you use, in order. Motion answers play:
+   each bead you use jumps onto the thread, typed letters drop into the entry line, a good word
+   lifts off while the thread flashes and the beads it bound glow in turn, a bad one shakes off,
+   goals stamp a check and the phrase does a wave when the puzzle is solved. */
+.game-wordbind {
+  --spring: cubic-bezier(0.3, 1.5, 0.5, 1);
+  --deep: color-mix(in srgb, var(--g) 75%, #000);
+  gap: 12px;
+}
+
+/* ---------- the phrase and its thread ---------- */
+.game-wordbind .wb-phrase {
+  position: relative; isolation: isolate; gap: 10px 16px; padding: 14px 10px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow);
+}
+.game-wordbind .wb-word { gap: 4px; }
+.game-wordbind .wb-thread { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: visible; }
+.game-wordbind .wb-thread-line { fill: none; stroke: var(--g); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; opacity: 0.85; }
+.game-wordbind .wb-thread-line.tip { stroke-dasharray: 1; stroke-dashoffset: 0; animation: wb-draw 0.22s ease-out; }
+@keyframes wb-draw { from { stroke-dashoffset: 1; } }
+.game-wordbind .wb-phrase.bad .wb-thread-line { stroke: var(--bad); stroke-dasharray: 5 5; }
+.game-wordbind .wb-thread-ghost { z-index: 0; }
+.game-wordbind .wb-thread-ghost.good .wb-thread-line { animation: wb-thread-good 0.65s ease-out forwards; stroke-dasharray: none; }
+@keyframes wb-thread-good { 0% { stroke-width: 3; opacity: 1; } 30% { stroke-width: 7; opacity: 1; stroke: var(--mark); } 100% { stroke-width: 9; opacity: 0; } }
+.game-wordbind .wb-thread-ghost.bad .wb-thread-line { stroke: var(--bad); animation: wb-thread-bad 0.5s ease-out forwards; }
+@keyframes wb-thread-bad { 0% { opacity: 1; } 100% { opacity: 0; transform: translateY(8px); } }
+
+.game-wordbind .wb-letter {
+  position: relative; z-index: 1; width: clamp(22px, 6.6vw, 31px); height: clamp(32px, 9.4vw, 42px); border-radius: 7px;
+  border: 1px solid var(--line); border-bottom-width: 3px; background: var(--surface); color: var(--ink);
+  font-size: clamp(1.05rem, 5.2vw, 1.45rem);
+  transition: background-color 0.15s ease, color 0.15s ease, translate 0.25s var(--spring);
+}
+.game-wordbind .wb-letter.on {
+  background: var(--g); border-color: var(--deep); color: var(--on-color); translate: 0 -3px;
+  box-shadow: 0 4px 8px -3px color-mix(in srgb, var(--g) 60%, transparent);
+}
+.game-wordbind .wb-letter.twice { box-shadow: 0 0 0 3px color-mix(in srgb, var(--g) 40%, transparent), 0 4px 8px -3px color-mix(in srgb, var(--g) 60%, transparent); }
+.game-wordbind .wb-letter.join { animation: wb-join 0.32s var(--spring); }
+@keyframes wb-join { 0% { transform: scale(0.8) translateY(4px); } 60% { transform: scale(1.18) translateY(-3px); } }
+/* a good word: the beads it bound glow one after another */
+.game-wordbind .wb-letter.bound { animation: wb-bound 0.6s ease backwards; animation-delay: calc(var(--k) * 45ms); }
+@keyframes wb-bound { 25% { background: var(--mark); border-color: var(--mark); color: #1b2233; transform: translateY(-6px) scale(1.1); } }
+/* solved: a wave runs through the phrase */
+.game-wordbind .wb-letter.wave { animation: wb-wave 0.7s var(--spring) backwards; animation-delay: calc(var(--i) * 45ms); }
+@keyframes wb-wave { 0% { transform: none; } 35% { transform: translateY(-12px) rotate(-6deg); background: var(--g); color: var(--on-color); border-color: var(--g); } 70% { transform: translateY(2px); } 100% { transform: none; } }
+.game-wordbind .wb-theme { margin-top: -4px; }
+
+/* ---------- entry line ---------- */
+.game-wordbind .wb-entry-wrap { position: relative; }
+.game-wordbind .wb-entry {
+  display: flex; justify-content: center; align-items: center; min-height: 2.6rem; font-size: 1.75rem; letter-spacing: 0.08em;
+  border-bottom: 2px solid var(--line); margin: 0 18%; transition: border-color 0.2s ease;
+}
+.game-wordbind .wb-entry.bad { color: var(--bad); border-bottom-color: var(--bad); }
+.game-wordbind .wb-entry .lt { display: inline-block; }
+.game-wordbind .wb-entry .lt.in { animation: wb-letter-in 0.24s var(--spring); }
+@keyframes wb-letter-in { 0% { transform: translateY(8px) scale(0.6); opacity: 0; } }
+.game-wordbind .wb-entry .ph { font-family: var(--f-body); font-weight: 400; font-size: 1rem; letter-spacing: 0; color: var(--muted); opacity: 0.7; animation: wb-fade 0.3s ease 0.3s backwards; }
+@keyframes wb-fade { from { opacity: 0; } }
+.game-wordbind .wb-ghost { position: absolute; inset: 0; pointer-events: none; border-color: transparent; }
+.game-wordbind .wb-ghost .lt { animation: wb-lift 0.55s cubic-bezier(0.5, 0, 0.75, 0) forwards; animation-delay: calc(var(--i) * 28ms); }
+.game-wordbind .wb-ghost.good .lt { color: var(--g); }
+@keyframes wb-lift { 0% { transform: none; } 30% { transform: translateY(3px) scale(1.08); opacity: 1; } 100% { transform: translateY(40px) scale(0.6); opacity: 0; } }
+.game-wordbind .wb-ghost.bad { color: var(--bad); animation: shake 0.35s ease, wb-out 0.25s ease 0.35s forwards; }
+.game-wordbind .wb-ghost.bad .lt { animation: none; }
+@keyframes wb-out { to { opacity: 0; } }
+
+/* ---------- goals ---------- */
+.game-wordbind .wb-goal { position: relative; gap: 7px; padding: 5px 11px; transition: border-color 0.2s ease, background-color 0.2s ease; }
+.game-wordbind .wb-goal.met { background: color-mix(in srgb, var(--g) 12%, var(--surface)); }
+.game-wordbind .wb-goal.now { animation: wb-met 0.6s var(--spring); }
+@keyframes wb-met { 40% { transform: scale(1.12); box-shadow: 0 0 0 3px var(--g); } }
+.game-wordbind .wb-dots i { transition: background-color 0.2s ease; }
+.game-wordbind .wb-dots i.just { animation: wb-dot 0.5s var(--spring) 0.15s backwards; }
+@keyframes wb-dot { 0% { transform: scale(0.2); } 60% { transform: scale(1.6); } }
+.game-wordbind .wb-check {
+  display: grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; background: var(--g); color: var(--on-color);
+  font-size: 0.7rem; line-height: 1; margin-right: -4px;
+}
+.game-wordbind .wb-goal.now .wb-check { animation: wb-stamp 0.5s var(--spring) 0.2s backwards; }
+@keyframes wb-stamp { 0% { transform: scale(2.2) rotate(-25deg); opacity: 0; } 100% { transform: none; opacity: 1; } }
+
+/* ---------- hint ---------- */
+.game-wordbind .wb-hint { display: flex; justify-content: center; align-items: center; gap: 5px; }
+.game-wordbind .wb-hint small { font-family: var(--f-body); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; margin-right: 4px; color: var(--muted); }
+.game-wordbind .wb-hint span {
+  width: 22px; height: 28px; display: grid; place-items: center; border-bottom: 2.5px solid var(--line);
+  font-family: var(--f-display); font-size: 1.1rem; color: var(--ink);
+}
+.game-wordbind .wb-hint span.on { border-bottom-color: var(--mark); background: color-mix(in srgb, var(--mark) 30%, transparent); border-radius: 4px 4px 0 0; }
+.game-wordbind .wb-hint span.in { animation: wb-letter-in 0.35s var(--spring); }
+
+/* ---------- bonus bar ---------- */
+.game-wordbind .wb-barwrap { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 10px; }
+.game-wordbind .wb-barwrap small { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+.game-wordbind .wb-bar { height: 8px; position: relative; }
+.game-wordbind .wb-bar span {
+  position: relative; overflow: hidden; border-radius: 99px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--g) 65%, var(--surface)), var(--g));
+  transition: width 0.6s cubic-bezier(0.25, 0.9, 0.3, 1.1);
+}
+.game-wordbind .wb-bar span::after {
+  content: ''; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.55) 50%, transparent 70%);
+  animation: wb-sheen 1s ease 0.3s;
+}
+@keyframes wb-sheen { to { transform: translateX(100%); } }
+.game-wordbind .wb-bar.full span { background: linear-gradient(90deg, var(--g), var(--mark)); }
+
+/* ---------- found words ---------- */
+.game-wordbind .wb-found:empty { display: none; }
+.game-wordbind .wb-chip { background: color-mix(in srgb, var(--g) 10%, var(--soft)); }
+.game-wordbind .wb-chip.new { animation: wb-chip 0.9s ease; }
+/* the fill is an inset shadow that shrinks away, so no color has to blend through color-mix */
+@keyframes wb-chip {
+  0% { transform: translateY(-14px) scale(1.3); box-shadow: inset 0 0 0 30px var(--g); color: var(--on-color); opacity: 0; }
+  25% { transform: none; opacity: 1; box-shadow: inset 0 0 0 30px var(--g); color: var(--on-color); }
+  100% { box-shadow: inset 0 0 0 0 var(--g); color: var(--ink); }
+}

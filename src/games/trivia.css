@@ -1,0 +1,120 @@
+/* ---------- Trivia ----------
+   The one bold thing: answers are quiz-show cards that flip over to show right or wrong. The
+   question sits on an index card with the category on its tab. Motion answers play: your pick
+   flips, the right answer flips a beat later when you missed, the tally ticks up, the progress
+   pip pops, each new question slides in, a hint strikes an answer out, and the final score
+   counts up while the round's pips do a wave and the review cascades in. */
+.game-trivia {
+  --spring: cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.game-trivia .trivia { gap: 14px; }
+
+/* ---------- top line ---------- */
+.game-trivia .trivia-top { align-items: center; flex-wrap: nowrap; }
+.game-trivia .trivia-count { white-space: nowrap; }
+.game-trivia .trivia-count b { font-family: var(--f-display); font-size: 1.35rem; color: var(--ink); }
+.game-trivia .trivia-cat {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: auto;
+  padding: 2px 10px; border-radius: 99px; background: color-mix(in srgb, var(--g) 12%, var(--surface)); font-size: 0.75rem;
+}
+.game-trivia .trivia-tally {
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 11px 3px 4px; border-radius: 99px;
+  background: var(--surface); border: 1px solid var(--line); white-space: nowrap;
+}
+.game-trivia .trivia-tally i { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 0.75rem; font-weight: 700; background: var(--hit); color: var(--on-color); }
+.game-trivia .trivia-tally b { font-family: var(--f-display); font-size: 1.1rem; color: var(--ink); min-width: 1ch; text-align: center; }
+.game-trivia .trivia-tally.up { animation: tv-pop 0.55s var(--spring) 0.35s backwards; }
+.game-trivia .trivia-tally.up i { animation: tv-spin 0.55s ease 0.35s backwards; }
+@keyframes tv-pop { 40% { transform: scale(1.22); } }
+@keyframes tv-spin { from { transform: rotate(-200deg) scale(0.4); } }
+
+/* ---------- progress pips ---------- */
+.game-trivia .trivia-progress { gap: 5px; }
+.game-trivia .trivia-progress i { height: 7px; border-radius: 4px; transition: background-color 0.2s ease; }
+.game-trivia .trivia-progress i.cur { background: var(--g); animation: tv-cur 1.6s ease-in-out infinite; }
+@keyframes tv-cur { 50% { opacity: 0.45; } }
+.game-trivia .trivia-progress i.just { animation: tv-pip 0.5s var(--spring) 0.3s backwards; }
+@keyframes tv-pip { 0% { transform: scaleY(1); background: var(--g); } 50% { transform: scaleY(2.2) scaleX(1.15); } }
+
+/* ---------- the question card ---------- */
+.game-trivia .trivia-card { display: grid; gap: 14px; }
+.game-trivia .trivia-card.enter { animation: tv-enter 0.42s cubic-bezier(0.2, 0.85, 0.3, 1); }
+@keyframes tv-enter { from { transform: translateX(46px); opacity: 0; } }
+.game-trivia .trivia-card.enter .choice { animation: tv-deal 0.42s cubic-bezier(0.2, 0.85, 0.3, 1.1) backwards; animation-delay: calc(0.08s + var(--k) * 55ms); }
+@keyframes tv-deal { from { transform: translateY(14px); opacity: 0; } }
+.game-trivia .trivia-q {
+  position: relative; padding: 16px 18px 18px; border-radius: 12px; background: var(--surface);
+  border: 1px solid var(--line); box-shadow: var(--shadow); font-size: clamp(1.25rem, 5vw, 1.55rem);
+  /* ruled index-card lines, with the margin rule in the game color */
+  background-image:
+    linear-gradient(90deg, transparent 10px, color-mix(in srgb, var(--g) 45%, transparent) 10px 11.5px, transparent 11.5px),
+    repeating-linear-gradient(transparent 0 calc(1.3em - 1px), color-mix(in srgb, var(--line) 55%, transparent) calc(1.3em - 1px) 1.3em);
+  background-position: 0 0, 0 16px;
+}
+
+/* ---------- answer cards ---------- */
+.game-trivia .trivia-choices { gap: 9px; perspective: 900px; }
+.game-trivia .choice {
+  --face: var(--surface);
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 11px 14px 11px 11px;
+  border-width: 1.5px; border-bottom-width: 3.5px; border-radius: 12px; color: var(--ink);
+  transition: transform 0.12s ease, border-color 0.15s ease, opacity 0.3s ease;
+}
+.game-trivia .choice:hover:not(:disabled) { transform: translateY(-2px); }
+.game-trivia .choice:active:not(:disabled) { transform: translateY(1px); border-bottom-width: 2px; margin-top: 1.5px; }
+.game-trivia .ch-key {
+  width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; font-family: var(--f-display); font-size: 0.95rem;
+  background: var(--soft); color: var(--muted);
+}
+.game-trivia .ch-mark { font-size: 1.15rem; line-height: 1; }
+.game-trivia .choice.right { --face: var(--hit); }
+.game-trivia .choice.wrong { --face: var(--bad); }
+.game-trivia .choice:is(.right, .wrong) { background: var(--face); border-color: var(--face); border-bottom-color: rgb(0 0 0 / 0.28); color: var(--on-color); }
+.game-trivia .choice:is(.right, .wrong) .ch-key { background: rgb(255 255 255 / 0.22); color: var(--on-color); }
+.game-trivia .choice.dim { opacity: 0.45; }
+.game-trivia .choice.cut { opacity: 0.4; border-style: dashed; border-bottom-width: 1.5px; background: transparent; }
+.game-trivia .choice.cut .ch-text { text-decoration: line-through; text-decoration-thickness: 2px; text-decoration-color: var(--bad); }
+.game-trivia .choice.cutting { animation: tv-cut 0.5s ease; }
+@keyframes tv-cut { 0% { opacity: 1; transform: none; } 40% { transform: translateX(10px) rotate(1deg); opacity: 0.9; } }
+/* the flip: the card turns edge-on, then its face comes round in green or red */
+.game-trivia .choice.flip { animation: tv-flip 0.5s cubic-bezier(0.4, 0, 0.3, 1) backwards; }
+.game-trivia .choice.flip.late { animation-delay: 0.32s; }
+@keyframes tv-flip {
+  0% { transform: rotateX(0); background: var(--surface); color: var(--ink); border-color: var(--line); }
+  49.9% { transform: rotateX(90deg); background: var(--surface); color: var(--ink); border-color: var(--line); }
+  50% { transform: rotateX(-90deg); background: var(--face); color: var(--on-color); border-color: var(--face); }
+  80% { transform: rotateX(8deg); }
+  100% { transform: rotateX(0); }
+}
+.game-trivia .choice.flip .ch-mark { animation: tv-mark 0.4s var(--spring) 0.4s backwards; }
+.game-trivia .choice.flip.late .ch-mark { animation-delay: 0.72s; }
+@keyframes tv-mark { from { transform: scale(0) rotate(-45deg); } }
+/* a right pick glows; a wrong one shakes once it has turned over */
+.game-trivia .choice.right.flip:not(.late) { animation: tv-flip 0.5s cubic-bezier(0.4, 0, 0.3, 1) backwards, tv-glow 0.8s ease 0.45s; }
+@keyframes tv-glow { 30% { box-shadow: 0 0 0 5px rgb(59 154 93 / 0.3), 0 8px 20px -6px var(--hit); } }
+.game-trivia .choice.wrong.flip { animation: tv-flip 0.5s cubic-bezier(0.4, 0, 0.3, 1) backwards, shake 0.35s ease 0.5s; }
+.game-trivia .choice.dim { transition-delay: 0.25s; }
+
+.game-trivia .next { min-width: 170px; padding: 12px 26px; font-size: 1.05rem; }
+.game-trivia .next.arrive { animation: tv-next 0.4s var(--spring) 0.45s backwards; }
+@keyframes tv-next { from { transform: translateY(14px) scale(0.85); opacity: 0; } }
+
+/* ---------- final score ---------- */
+.game-trivia .trivia-score { padding: 18px 0 4px; }
+.game-trivia .trivia-score b { font-size: 3.6rem; font-variant-numeric: tabular-nums; }
+.game-trivia .trivia-score.reveal b { animation: tv-score 0.7s var(--spring); }
+@keyframes tv-score { 0% { transform: scale(0.4); opacity: 0; } }
+.game-trivia .trivia-score.reveal span { animation: tv-deal 0.4s ease 0.9s backwards; }
+.game-trivia .trivia-final .trivia-progress i { height: 10px; }
+.game-trivia .trivia-final.wave .trivia-progress i { animation: tv-wave 0.6s var(--spring) backwards; animation-delay: calc(0.3s + var(--i) * 60ms); }
+@keyframes tv-wave { 0% { transform: scaleY(0.2); opacity: 0; } 50% { transform: scaleY(2.4) translateY(-2px); opacity: 1; } 100% { transform: none; } }
+.game-trivia .trivia-review { list-style: none; padding: 0; counter-reset: q; gap: 8px; }
+.game-trivia .trivia-review li {
+  counter-increment: q; position: relative; padding: 10px 12px 10px 44px; border-radius: 10px; background: var(--surface);
+  border: 1px solid var(--line); border-left: 4px solid var(--hit);
+}
+.game-trivia .trivia-review li.no { border-left-color: var(--bad); }
+.game-trivia .trivia-review li::before {
+  content: counter(q); position: absolute; left: 12px; top: 10px; font-family: var(--f-display); font-weight: 700; color: var(--muted);
+}
+.game-trivia .trivia-review.reveal li { animation: tv-deal 0.4s cubic-bezier(0.2, 0.85, 0.3, 1.1) backwards; animation-delay: calc(0.6s + var(--i) * 60ms); }
