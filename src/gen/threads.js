@@ -11,6 +11,17 @@ const SETTINGS = {
 };
 
 const plural = (w) => (/(s|x|z|ch|sh)$/.test(w) ? w + 'es' : /[^aeiou]y$/.test(w) ? w.slice(0, -1) + 'ies' : w + 's');
+// Theme names whose last word doesn't take a regular plural: already plural (goods), uncountable
+// (furniture, cattle), activities (cooking, singing) or irregular (tooth).
+const SAME = new Set(['goods', 'fish', 'cattle', 'aircraft', 'furniture', 'equipment', 'produce', 'hair', 'leather', 'transport',
+  'cooking', 'cleaning', 'dancing', 'swimming', 'singing']);
+const IRREGULAR = { tooth: 'teeth' };
+export function themeWord(name) {
+  const parts = name.split(' ');
+  const last = parts.pop();
+  const many = IRREGULAR[last] || (SAME.has(last) || /[^s]s$/.test(last) ? last : plural(last));
+  return parts.join('') + many;
+}
 
 function nbrs8(rows, cols, c) {
   const r = Math.floor(c / cols), k = c % cols, out = [];
@@ -111,7 +122,7 @@ export function generateThreads(rng, difficulty = 'medium') {
   const s = SETTINGS[difficulty] || SETTINGS.medium;
   const cats = getCategories().filter((c) => c.k === 'kind');
   const total = s.rows * s.cols;
-  const spanOf = (c) => plural(c.n.replace(/ /g, ''));
+  const spanOf = (c) => themeWord(c.n);
   const poolOf = (c, span) => (s.first ? c.f : c.w).filter((w) => (tier(w) ?? 99) <= s.tier && w.length >= 4 && w.length <= 8 && !span.includes(w));
   // only themes that fit this grid go in the deck, so each New puzzle round moves to a fresh theme
   const fits = cats.filter((c) => {
