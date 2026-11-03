@@ -1,10 +1,13 @@
 import './typeshift.css';
 import { h, put } from '../lib/ui.js';
 import { calm } from '../lib/celebrate.js';
-import { generateTypeshift, ACCEPT_TIER } from '../gen/typeshift.js';
+import { generateTypeshift } from '../gen/typeshift.js';
 import { isWord } from '../lib/words.js';
 
 const CELL = 48; // px per letter row; matches the CSS
+// Words accepted while playing: a wider dictionary than the one the puzzle is built from, so any
+// real word you line up counts. (Puzzle building and par still use ACCEPT_TIER.)
+const PLAY_TIER = 60;
 
 export default {
   id: 'typeshift',
@@ -37,7 +40,8 @@ export default {
     p.cols.forEach((col, i) => {
       const strip = h('div', { class: 'ts-strip' }, col.map((ch, k) => h('button', {
         class: 'ts-letter', type: 'button', 'data-k': k, style: { '--i': i, '--k': k },
-        onClick: (e) => { e.currentTarget.blur(); if (!dragMoved) setPos(i, k); },
+        // a tap moves that letter into the window; a tap that's really the end of a drag is ignored
+        onClick: (e) => { e.currentTarget.blur(); if (!dragMoved && performance.now() - dragEndedAt[i] > 400) setPos(i, k); },
       }, h('span', {}, ch.toUpperCase()))));
       // the tile that lands in the window gives a small click once its column settles
       strip.addEventListener('transitionend', (e) => { if (e.target === strip && e.propertyName === 'transform') land(i); });
@@ -65,20 +69,20 @@ export default {
       if (el) replay(el, 'land');
     }
 
-    // drag a column; on release it keeps the speed of a flick, then snaps to the nearest letter
+    // drag a column; on release it snaps to the letter nearest the window, exactly where you let go
     let dragMoved = false;
+    const dragEndedAt = p.cols.map(() => -1e9); // per column, so a quick tap on another column still counts
     function drag(lane, i) {
-      let y0 = null, startK = 0, samples = [];
+      let y0 = null, startK = 0, lastY = 0, pid = null;
       lane.addEventListener('pointerdown', (e) => {
-        if (done) return;
-        y0 = e.clientY; startK = pos[i]; dragMoved = false; samples = [[e.clientY, e.timeStamp]];
+        if (done || y0 !== null) return; // one finger per column
+        y0 = e.clientY; lastY = e.clientY; pid = e.pointerId; startK = pos[i]; dragMoved = false;
       });
       lane.addEventListener('pointermove', (e) => {
-        if (y0 === null) return;
+        if (y0 === null || e.pointerId !== pid) return;
+        lastY = e.clientY;
         const dy = e.clientY - y0;
         if (!dragMoved && Math.abs(dy) > 6) { dragMoved = true; lane.setPointerCapture(e.pointerId); lane.classList.add('held'); }
-        samples.push([e.clientY, e.timeStamp]);
-        if (samples.length > 5) samples.shift();
         if (!dragMoved) return;
         const max = (startK) * CELL, min = (startK - (p.cols[i].length - 1)) * CELL;
         // past the ends the column stretches a little and resists, like a reel at its stop
@@ -86,20 +90,18 @@ export default {
         place(i, y, false);
       });
       const end = (e) => {
-        if (y0 === null) return;
-        const dy = e.clientY - y0; y0 = null;
+        if (y0 === null || e.pointerId !== pid) return;
+        // a cancelled touch can report a junk position, so use the last real one
+        const y = e.type === 'pointercancel' ? lastY : e.clientY;
+        const dy = y - y0; y0 = null; pid = null;
         lane.classList.remove('held');
         if (!dragMoved) return;
-        let v = 0; // px per ms over the last few moves
-        const a = samples[0], b = samples[samples.length - 1];
-        if (b && b[1] > a[1] && e.timeStamp - b[1] < 90) v = (b[0] - a[0]) / (b[1] - a[1]);
-        const fling = calm() ? 0 : Math.max(-2.4 * CELL, Math.min(2.4 * CELL, v * 110));
-        const k = Math.max(0, Math.min(p.cols[i].length - 1, startK - Math.round((dy + fling) / CELL)));
-        // the farther it has to travel, the longer the glide
+        const k = Math.max(0, Math.min(p.cols[i].length - 1, startK - Math.round(dy / CELL)));
         const rowsToGo = Math.abs(k - (startK - dy / CELL));
-        strips[i].style.setProperty('--ts-dur', `${Math.round(Math.min(560, 240 + rowsToGo * 90))}ms`);
+        strips[i].style.setProperty('--ts-dur', `${Math.round(Math.min(380, 200 + rowsToGo * 120))}ms`);
         pos[i] = startK; setPos(i, k);
-        setTimeout(() => { dragMoved = false; }, 0);
+        dragEndedAt[i] = performance.now();
+        dragMoved = false;
       };
       lane.addEventListener('pointerup', end);
       lane.addEventListener('pointercancel', end);
@@ -125,7 +127,7 @@ export default {
     let fresh = null, winNow = false; // a word just found, and whether it finished the puzzle
     function check() {
       const w = current();
-      if (!isWord(w, ACCEPT_TIER) || found.includes(w)) return;
+      if (!isWord(w, PLAY_TIER) || found.includes(w)) return;
       take(w);
       fresh = w;
       ctx.toast(w.toUpperCase());

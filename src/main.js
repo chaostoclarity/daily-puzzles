@@ -343,7 +343,7 @@ function buildGame(g) {
           h('button', { class: 'btn', type: 'button', onClick: () => { close(); location.hash = ''; } }, 'All games'),
           h('button', { class: 'btn primary', type: 'button', onClick: () => { close(); newPuzzle(); } }, 'New puzzle')),
         h('button', { class: 'link', type: 'button', onClick: close }, 'Look at the board'),
-      ], { cls: 'win' }), 750);
+      ], { cls: 'win' }), 1300); // after the board's own win animation has played
     },
   };
 
