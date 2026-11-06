@@ -28,7 +28,7 @@ Twenty-five daily puzzle games in one web app. Every puzzle is generated in the 
 | Wordscopes | Wordscapes | 5-letter wheel | 6-letter wheel | 7-letter wheel, 4+ letter words |
 | Bango | Bongo | 2 bonus squares | 5 bonus squares | wider word list |
 | Wordbund | Wordbind | 4+ letters, goals at 4 to 6 | 5+ letters, goals at 5 to 7 | longer phrase, goals at 6 to 8 |
-| Woffle | Waffle | common words, par 6 swaps | common words, par 10 | wider word list, par 10, fewer green to start |
+| Woffle | Waffle | common words, par 6 swaps | common words, par 10 | wider word list, par 10, fewer green to start; stars lost only on swaps that turn nothing green |
 
 Crissclimb's top and bottom words join into a compound word (FIRE + WORK). Spilling Bee follows the New York Times rules: 4-letter words score 1, longer words 1 per letter, pangrams 7 extra. Ranks run Beginner to Genius (70% of the day's points, which counts as solved) to Queen Bee (every word), with no timer; your record is your best points.
 

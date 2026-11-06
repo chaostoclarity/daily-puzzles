@@ -67,19 +67,18 @@
 .game-waffle .wf-board.shown .wf-tile { animation: wf-show 0.5s cubic-bezier(0.3, 0, 0.3, 1.2) backwards; animation-delay: calc(var(--d) * 55ms); }
 @keyframes wf-show { 0% { transform: rotateX(90deg); } }
 
-/* swaps left: pips that run out from the left. Pips past par are stars you keep by not spending them */
+/* five stars; one goes out for each swap that turns no tile green */
 .game-waffle .wf-status { display: grid; justify-items: center; gap: 8px; }
 .game-waffle .wf-pips { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 5px; max-width: 100%; }
 .game-waffle .wf-pips i { width: 11px; height: 11px; border-radius: 3px; background: var(--g); transition: background-color 0.3s ease, opacity 0.3s ease; }
+.game-waffle .wf-pips { gap: 4px; }
 .game-waffle .wf-pips i.star {
-  width: 16px; height: 16px; border-radius: 0; background: var(--mark);
+  width: 24px; height: 24px; border-radius: 0; background: var(--mark);
   clip-path: polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
 }
-.game-waffle .wf-pips i.star:not(.used) + i.star { margin-left: -1px; }
-.game-waffle .wf-pips i:not(.star) + i.star { margin-left: 6px; }
 .game-waffle .wf-pips i.used { background: var(--line); }
 .game-waffle .wf-pips i.just { animation: wf-spend 0.5s cubic-bezier(0.3, 1.5, 0.5, 1); }
-@keyframes wf-spend { 0% { transform: scale(1.5); background: var(--g); } 30% { transform: scale(0.6); } }
+@keyframes wf-spend { 0% { transform: scale(1); background: var(--mark); } 30% { transform: scale(1.5) rotate(20deg); background: var(--mark); } 100% { transform: none; } }
 .game-waffle .wf-meter { align-items: baseline; }
 .game-waffle .wf-meter b { display: inline-block; font-family: var(--f-display); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
 .game-waffle .wf-meter b.tick { animation: wf-tick 0.35s cubic-bezier(0.3, 1.4, 0.5, 1); }

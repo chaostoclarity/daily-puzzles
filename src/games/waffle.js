@@ -15,13 +15,17 @@ export default {
     'Six five-letter words run across and down the waffle. Their letters are scrambled.',
     'Tap a letter, then tap another to swap them.',
     'Green is in the right spot. Yellow belongs somewhere else in a word that runs through that square. Gray belongs in neither of its words.',
-    'Solve it before your swaps run out. The fewest possible is shown as par; every swap you save is a star.',
+    'Solve it before your swaps run out. You start with five stars: a swap that turns at least one tile green is free, a swap that turns none green costs a star.',
+    'Par is the fewest swaps possible. Beat your record by finding swaps that turn two tiles green at once.',
   ],
   mount(root, ctx) {
     const p = ctx.puzzle;
     const saved = ctx.load();
     const cur = saved?.cur || p.start.slice();
     let used = saved?.used || 0;
+    let wasted = saved?.wasted || 0; // swaps that turned no tile green; each one costs a star
+    const STARS = 5;
+    const stars = () => Math.max(0, STARS - wasted);
     let over = saved?.over || null; // 'won' | 'lost'
     let sel = null;
     const els = [];
@@ -34,7 +38,7 @@ export default {
       els.push(el); grid.append(el);
     }
     const board = h('div', { class: 'board wf-board' }, grid);
-    // swaps as pips: the ones up to par are the swaps you need, the rest are stars you keep by not spending them
+    // five stars: one goes out for each swap that turns no tile green
     const pips = h('div', { class: 'wf-pips', 'aria-hidden': 'true' });
     const meter = h('p', { class: 'wf-meter', 'aria-live': 'polite' });
     root.append(board, h('div', { class: 'wf-status' }, pips, meter));
@@ -84,7 +88,10 @@ export default {
       if (sel === null) { sel = i; return render(); }
       if (sel === i) { sel = null; return render(); }
       if (cur[sel] === cur[i]) { shake(els[i]); sel = null; return render(); } // same letter: nothing to gain
+      const greens = () => CELLS.filter((c) => cur[c] === p.sol[c]).length;
+      const before = greens();
       const go = swapTiles(sel, i); used++; sel = null;
+      if (greens() === before) { wasted++; ctx.toast(stars() ? 'No new green: one star gone' : 'No new green'); }
       check();
       render(true);
       go();
@@ -95,7 +102,7 @@ export default {
         over = 'won';
         const spare = left();
         replay(board, 'win');
-        ctx.solved(`${spare} swap${spare === 1 ? '' : 's'} to spare (${'★'.repeat(spare)}${'☆'.repeat(Math.max(0, 5 - spare))})`, { value: spare, higher: true, fmt: (v) => `${v} spare` });
+        ctx.solved(`${'★'.repeat(stars())}${'☆'.repeat(STARS - stars())} · ${used} swap${used === 1 ? '' : 's'}, par ${p.par}`, { value: spare, higher: true, fmt: (v) => `${v} spare` });
       } else if (left() <= 0) {
         over = 'lost';
         ctx.finished?.();
@@ -105,7 +112,7 @@ export default {
       }
     }
 
-    let prevColors = null, shownLeft = null;
+    let prevColors = null, shownLeft = null, shownStars = null;
     function render(swapped = false) {
       const colors = colorsFor(cur, p.sol);
       for (const i of CELLS) {
@@ -120,15 +127,17 @@ export default {
       prevColors = colors;
       grid.classList.toggle('picking', sel !== null);
       grid.classList.toggle('solved', over === 'won');
-      put(pips, Array.from({ length: p.swaps }, (_, k) => h('i', {
-        class: (k >= p.par ? 'star' : '') + (k < used ? ' used' : '') + (shownLeft != null && k < used && k >= p.swaps - shownLeft ? ' just' : ''),
+      // stars go out from the right
+      put(pips, Array.from({ length: STARS }, (_, k) => h('i', {
+        class: 'star' + (k >= stars() ? ' used' : '') + (shownStars != null && k >= stars() && k < shownStars ? ' just' : ''),
       })));
+      shownStars = stars();
       const n = h('b', { class: shownLeft != null && shownLeft !== left() ? 'tick' : '' }, left());
       put(meter, over === 'won' ? h('span', {}, n, ` swap${left() === 1 ? '' : 's'} to spare`)
         : over === 'lost' ? h('span', {}, 'Out of swaps. The answer is shown.')
           : [h('span', {}, n, ` swap${left() === 1 ? '' : 's'} left`), h('span', { class: 'wf-par' }, `par ${p.par}`)]);
       shownLeft = left();
-      ctx.save({ cur, used, over });
+      ctx.save({ cur, used, over, wasted });
     }
     // a lock pop clears itself once it has played
     grid.addEventListener('animationend', (e) => { if (e.animationName === 'wf-lock') e.target.classList.remove('lock'); });
